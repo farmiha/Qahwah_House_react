@@ -27,7 +27,7 @@ const GLOBAL_CSS = `
     70%{transform:translate(-4%,20%)} 90%{transform:translate(-10%,5%)}
   }
   @keyframes scrollPulse { 0%,100%{opacity:.4;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(1.2)} }
-  @keyframes cartBounce { 0%{transform:scale(1)} 30%{transform:scale(1.35)} 60%{transform:scale(.9)} 100%{transform:scale(1)} }
+  @keyframes cartBounce { 0%{transform:scale(1)} 30%{transform:scale(1.35)} 60%{transform:.9)} 100%{transform:scale(1)} }
   .anim-fadeup { animation: fadeUp .9s ease both; }
   .anim-fadeup-d1 { animation: fadeUp .9s ease .15s both; }
   .anim-fadeup-d2 { animation: fadeUp .9s ease .3s both; }
@@ -58,6 +58,7 @@ const GLOBAL_CSS = `
   .info-card:hover { border-color:#c07b3a88; }
   .info-card { transition:border-color .25s; }
   .qh-input:focus { outline:none; border-color:#c07b3a; box-shadow:0 0 0 3px rgba(192,123,58,.12); }
+  .slider-arrow:hover { background: rgba(192,123,58,.2) !important; border-color: rgba(245,239,230,.8) !important; }
   @media (max-width:640px) {
     .stat-sep { border-right:none !important; border-bottom:1px solid rgba(192,123,58,.2) !important; }
     .timeline-line { left:20px; }
@@ -68,9 +69,13 @@ const GLOBAL_CSS = `
   @media (max-width:768px) {
     .gallery-slide { min-width:85vw !important; }
     .menu-card-grid { grid-template-columns: repeat(2,1fr) !important; }
+    .slider-info-bar { padding: 20px 32px 16px !important; }
+    .slider-arrows-left { left: 12px !important; }
+    .slider-arrows-right { right: 12px !important; }
   }
   @media (max-width:480px) {
     .menu-card-grid { grid-template-columns: 1fr !important; }
+    .slider-info-bar { flex-direction: column !important; align-items: flex-start !important; }
   }
 `;
 
@@ -82,18 +87,16 @@ const NAV_LINKS = [
 ];
 
 const DRINKS = [
-  { id: 1, name: "Traditional Qahwah", desc: "Ancient Yemeni spiced coffee with ginger, cardamom & saffron.", price: 6.5, size: "12 oz", badge: "Signature", img: "img44.jpg" },
+  { id: 1, name: "Traditional Qahwah", desc: "Ancient Yemeni spiced coffee with ginger, cardamom & saffron.", price: 6.5, size: "12 oz", badge: "Signature", img: "img4.jpg" },
   { id: 2, name: "Adeni Chai", desc: "Yemeni black tea with cardamom, nutmeg & evaporated milk.", price: 7.0, size: "12 oz", badge: "Signature", img: "img3.jpg" },
-  { id: 3, name: "Rose Milk Tea", desc: "Creamy pink milk tea with dried rose petals, star anise, and cardamom.", price: 7.0, size: "12 oz", badge: "New", img: "img5.jpg" },
-  { id: 4, name: "Sana'ani Coffee", desc: "Medium roast with cardamom from Yemen's mountain capital.", price: 7.5, size: "12 oz", badge: "Traditional", img: "img4.jpg" },
-  { id: 5, name: "Turkish Coffee", desc: "Finely ground dark coffee prepared the Ottoman way — served on an ornate silver tray.", price: 6.0, size: "Demitasse", badge: "Classic", img: "img7.jpg" },
-  { id: 6, name: "Latte", desc: "Smooth espresso with steamed milk and a delicate latte art finish.", price: 7.0, size: "16 oz", badge: "Café", img: "img9.jpg" },
+  { id: 3, name: "Sana'ani Coffee", desc: "Medium roast with cardamom from Yemen's mountain capital.", price: 7.0, size: "12 oz", badge: "New", img: "img7.jpg" },
+  { id: 5, name: "Espresso", desc: "Double shot of dark roast Yemeni Arabica — bold and smooth.", price: 6.0, size: "Demitasse", badge: "Classic", img: "img8.jpg" },
+  { id: 6, name: "Latte", desc: "Smooth espresso with steamed milk and a delicate latte art finish.", price: 7.0, size: "16 oz", badge: "Café", img: "img11.jpg" },
 ];
 
 const PASTRIES = [
-  { id: 7, name: "Pistachio Baklava", desc: "House-made baklava soaked in fragrant rose water syrup. Crisp and sweet.", price: 6.5, size: "2 pcs", badge: "Bestseller", img: "img8.jpg" },
+  { id: 7, name: "Pistachio Baklava", desc: "House-made baklava soaked in fragrant rose water syrup. Crisp and sweet.", price: 6.5, size: "2 pcs", badge: "Bestseller", img: "img9.jpg" },
   { id: 8, name: "Honey Cake", desc: "Layered Yemeni honey cake made with local sidr honey and warm spices.", price: 5.5, size: "Slice", badge: "Chef's Pick", img: "img10.jpg" },
-  { id: 9, name: "Cheese Fatayer", desc: "Soft baked pull-apart rolls stuffed with creamy cheese, sesame & nigella.", price: 8.5, size: "Slice", badge: "Savory", img: "img14.jpg" },
 ];
 
 const GALLERY_SLIDES = [
@@ -132,16 +135,18 @@ const ADDONS = [
   ["Cold Foam", "+$1.00"], ["Rose Water", "+$0.50"],
 ];
 
+// ── SHARED COMPONENTS ──────────────────────────────────────────────────────
+
 function SectionLabel({ children }) {
   return (
-    <span className="section-label" style={{ display:"inline-block", fontFamily:"'Jost',sans-serif", fontSize:".75rem", fontWeight:500, letterSpacing:".2em", textTransform:"uppercase", color:C.amber, marginBottom:"14px" }}>
+    <span className="section-label" style={{ display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".75rem", fontWeight: 500, letterSpacing: ".2em", textTransform: "uppercase", color: C.amber, marginBottom: "14px" }}>
       {children}
     </span>
   );
 }
 
 function Btn({ children, onClick, variant = "primary", style = {}, full = false }) {
-  const base = { display:"inline-block", fontFamily:"'Jost',sans-serif", fontSize:".78rem", fontWeight:500, letterSpacing:".15em", textTransform:"uppercase", padding:"14px 36px", borderRadius:"4px", cursor:"pointer", border:"none", transition:"all .3s", width: full ? "100%" : undefined, textAlign:"center" };
+  const base = { display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".78rem", fontWeight: 500, letterSpacing: ".15em", textTransform: "uppercase", padding: "14px 36px", borderRadius: "4px", cursor: "pointer", border: "none", transition: "all .3s", width: full ? "100%" : undefined, textAlign: "center" };
   const variants = {
     primary: { background: C.amber, color: C.warmWhite },
     outline: { background: "transparent", color: C.cream, border: `1px solid rgba(245,239,230,.5)` },
@@ -151,7 +156,11 @@ function Btn({ children, onClick, variant = "primary", style = {}, full = false 
 
 function useCart() {
   const [cart, setCart] = useState([]);
-  const add = (item) => setCart(prev => { const ex = prev.find(i => i.id === item.id); if (ex) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i); return [...prev, { ...item, qty: 1 }]; });
+  const add = (item) => setCart(prev => {
+    const ex = prev.find(i => i.id === item.id);
+    if (ex) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+    return [...prev, { ...item, qty: 1 }];
+  });
   const remove = (id) => setCart(prev => prev.filter(i => i.id !== id));
   const changeQty = (id, delta) => setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -162,53 +171,63 @@ function useCart() {
 
 function Toast({ msg }) {
   if (!msg) return null;
-  return <div style={{ position:"fixed", bottom:32, left:"50%", transform:"translateX(-50%)", background:C.espresso, color:C.cream, fontFamily:"'Jost',sans-serif", fontSize:".75rem", letterSpacing:".1em", padding:"11px 28px", borderRadius:"40px", border:`1px solid rgba(192,123,58,.4)`, zIndex:3000, whiteSpace:"nowrap", animation:"fadeUp .3s ease both" }}>{msg}</div>;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", background: C.espresso, color: C.cream, fontFamily: "'Jost',sans-serif", fontSize: ".75rem", letterSpacing: ".1em", padding: "11px 28px", borderRadius: "40px", border: `1px solid rgba(192,123,58,.4)`, zIndex: 3000, whiteSpace: "nowrap", animation: "fadeUp .3s ease both" }}>
+      {msg}
+    </div>
+  );
 }
+
+// ── HEADER ─────────────────────────────────────────────────────────────────
 
 function Header({ page, setPage, cartCount, onCartOpen }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
+  }, []);
   const headerBg = page === "home" && !scrolled ? "transparent" : "rgba(26,10,2,.96)";
   return (
     <>
-      <header style={{ position:"fixed", top:0, left:0, right:0, zIndex:1000, background:headerBg, backdropFilter: scrolled || page !== "home" ? "blur(12px)" : "none", boxShadow: scrolled || page !== "home" ? "0 2px 24px rgba(0,0,0,.3)" : "none", transition:"all .35s" }}>
-        <nav style={{ display:"flex", alignItems:"center", justifyContent:"space-between", height:72, padding:"0 40px", maxWidth:1400, margin:"0 auto" }}>
-          <button onClick={() => setPage("home")} style={{ display:"flex", alignItems:"center", gap:10, background:"none", border:"none", cursor:"pointer", fontFamily:"'Playfair Display',serif", fontSize:"1.4rem", fontWeight:700, color:C.cream }}>
-            ☕ Qahwah<span style={{ color:C.amber }}>House</span>
+      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: headerBg, backdropFilter: scrolled || page !== "home" ? "blur(12px)" : "none", boxShadow: scrolled || page !== "home" ? "0 2px 24px rgba(0,0,0,.3)" : "none", transition: "all .35s" }}>
+        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 72, padding: "0 40px", maxWidth: 1400, margin: "0 auto" }}>
+          <button onClick={() => setPage("home")} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", fontFamily: "'Playfair Display',serif", fontSize: "1.4rem", fontWeight: 700, color: C.cream }}>
+            ☕ Qahwah<span style={{ color: C.amber }}>House</span>
           </button>
-          <ul style={{ display:"flex", gap:40, alignItems:"center" }} className="desktop-nav">
+          <ul style={{ display: "flex", gap: 40, alignItems: "center" }} className="desktop-nav">
             {NAV_LINKS.map(l => (
               <li key={l.page}>
-                <button onClick={() => { setPage(l.page); window.scrollTo(0,0); }} className={`nav-link-item ${page === l.page ? "active" : ""}`}
-                  style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"'Jost',sans-serif", fontSize:".8rem", letterSpacing:".12em", textTransform:"uppercase", color: page === l.page ? C.cream : "rgba(245,239,230,.75)", transition:"color .3s" }}>
+                <button onClick={() => { setPage(l.page); window.scrollTo(0, 0); }} className={`nav-link-item ${page === l.page ? "active" : ""}`}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost',sans-serif", fontSize: ".8rem", letterSpacing: ".12em", textTransform: "uppercase", color: page === l.page ? C.cream : "rgba(245,239,230,.75)", transition: "color .3s" }}>
                   {l.label}
                 </button>
               </li>
             ))}
             <li>
-              <button onClick={onCartOpen} style={{ background:"none", border:`1px solid rgba(192,123,58,.4)`, borderRadius:6, cursor:"pointer", color:"rgba(245,239,230,.85)", display:"flex", alignItems:"center", gap:8, fontFamily:"'Jost',sans-serif", fontSize:".75rem", letterSpacing:".12em", textTransform:"uppercase", padding:"8px 16px", transition:"all .25s" }}>
+              <button onClick={onCartOpen} style={{ background: "none", border: `1px solid rgba(192,123,58,.4)`, borderRadius: 6, cursor: "pointer", color: "rgba(245,239,230,.85)", display: "flex", alignItems: "center", gap: 8, fontFamily: "'Jost',sans-serif", fontSize: ".75rem", letterSpacing: ".12em", textTransform: "uppercase", padding: "8px 16px", transition: "all .25s" }}>
                 🛒 Cart
-                {cartCount > 0 && <span style={{ background:C.amber, color:"#fff", fontFamily:"'Jost',sans-serif", fontSize:".6rem", fontWeight:700, width:18, height:18, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center" }}>{cartCount}</span>}
+                {cartCount > 0 && <span style={{ background: C.amber, color: "#fff", fontFamily: "'Jost',sans-serif", fontSize: ".6rem", fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>{cartCount}</span>}
               </button>
             </li>
           </ul>
-          <button onClick={() => setMobileOpen(v => !v)} style={{ display:"none", flexDirection:"column", gap:5, background:"none", border:"none", cursor:"pointer", padding:8 }} id="hamburger-btn">
-            <span style={{ display:"block", width:24, height:2, background:C.cream, borderRadius:2 }} />
-            <span style={{ display:"block", width:24, height:2, background:C.cream, borderRadius:2 }} />
-            <span style={{ display:"block", width:24, height:2, background:C.cream, borderRadius:2 }} />
+          <button onClick={() => setMobileOpen(v => !v)} style={{ display: "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 8 }} id="hamburger-btn">
+            <span style={{ display: "block", width: 24, height: 2, background: C.cream, borderRadius: 2 }} />
+            <span style={{ display: "block", width: 24, height: 2, background: C.cream, borderRadius: 2 }} />
+            <span style={{ display: "block", width: 24, height: 2, background: C.cream, borderRadius: 2 }} />
           </button>
         </nav>
       </header>
-      {mobileOpen && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", zIndex:1040 }} onClick={() => setMobileOpen(false)} />}
-      <div className="mobile-nav" style={{ position:"fixed", top:0, right: mobileOpen ? 0 : "-100%", bottom:0, width:"min(300px,78vw)", background:C.espresso, zIndex:1050, display:"flex", flexDirection:"column", justifyContent:"center", padding:"88px 40px 48px", borderLeft:`1px solid rgba(192,123,58,.25)`, boxShadow:"-8px 0 40px rgba(0,0,0,.4)" }}>
+      {mobileOpen && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1040 }} onClick={() => setMobileOpen(false)} />}
+      <div className="mobile-nav" style={{ position: "fixed", top: 0, right: mobileOpen ? 0 : "-100%", bottom: 0, width: "min(300px,78vw)", background: C.espresso, zIndex: 1050, display: "flex", flexDirection: "column", justifyContent: "center", padding: "88px 40px 48px", borderLeft: `1px solid rgba(192,123,58,.25)`, boxShadow: "-8px 0 40px rgba(0,0,0,.4)" }}>
         {NAV_LINKS.map(l => (
-          <button key={l.page} onClick={() => { setPage(l.page); setMobileOpen(false); window.scrollTo(0,0); }}
-            style={{ background:"none", border:"none", borderBottom:`1px solid rgba(192,123,58,.12)`, cursor:"pointer", fontFamily:"'Jost',sans-serif", fontSize:"1.1rem", letterSpacing:".05em", textTransform:"uppercase", color: page === l.page ? C.amber : "rgba(245,239,230,.85)", display:"block", padding:"14px 0", textAlign:"left", width:"100%" }}>
+          <button key={l.page} onClick={() => { setPage(l.page); setMobileOpen(false); window.scrollTo(0, 0); }}
+            style={{ background: "none", border: "none", borderBottom: `1px solid rgba(192,123,58,.12)`, cursor: "pointer", fontFamily: "'Jost',sans-serif", fontSize: "1.1rem", letterSpacing: ".05em", textTransform: "uppercase", color: page === l.page ? C.amber : "rgba(245,239,230,.85)", display: "block", padding: "14px 0", textAlign: "left", width: "100%" }}>
             {l.label}
           </button>
         ))}
-        <button onClick={() => { onCartOpen(); setMobileOpen(false); }} style={{ marginTop:24, background:C.amber, color:"#fff", border:"none", borderRadius:4, padding:"12px 24px", cursor:"pointer", fontFamily:"'Jost',sans-serif", fontSize:".8rem", letterSpacing:".1em", textTransform:"uppercase" }}>
+        <button onClick={() => { onCartOpen(); setMobileOpen(false); }} style={{ marginTop: 24, background: C.amber, color: "#fff", border: "none", borderRadius: 4, padding: "12px 24px", cursor: "pointer", fontFamily: "'Jost',sans-serif", fontSize: ".8rem", letterSpacing: ".1em", textTransform: "uppercase" }}>
           🛒 Cart {cartCount > 0 ? `(${cartCount})` : ""}
         </button>
       </div>
@@ -217,42 +236,44 @@ function Header({ page, setPage, cartCount, onCartOpen }) {
   );
 }
 
+// ── CART DRAWER ────────────────────────────────────────────────────────────
+
 function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout }) {
   return (
     <>
-      {open && <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)", zIndex:1200 }} />}
-      <div style={{ position:"fixed", top:0, right:0, bottom:0, width:"min(440px,100vw)", background:C.warmWhite, zIndex:1300, display:"flex", flexDirection:"column", transform: open ? "translateX(0)" : "translateX(100%)", transition:"transform .4s cubic-bezier(.4,0,.2,1)", boxShadow:"-8px 0 40px rgba(0,0,0,.2)" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"24px 28px", borderBottom:`1px solid rgba(192,123,58,.2)`, background:C.espresso }}>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:"1.3rem" }}>Your Order</h2>
-          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(245,239,230,.6)", fontSize:"1.5rem" }}>×</button>
+      {open && <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1200 }} />}
+      <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(440px,100vw)", background: C.warmWhite, zIndex: 1300, display: "flex", flexDirection: "column", transform: open ? "translateX(0)" : "translateX(100%)", transition: "transform .4s cubic-bezier(.4,0,.2,1)", boxShadow: "-8px 0 40px rgba(0,0,0,.2)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", borderBottom: `1px solid rgba(192,123,58,.2)`, background: C.espresso }}>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", color: C.cream, fontSize: "1.3rem" }}>Your Order</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,239,230,.6)", fontSize: "1.5rem" }}>×</button>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px", display:"flex", flexDirection:"column", gap:14 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
           {cart.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"60px 0", color:C.textMuted, fontFamily:"'Jost',sans-serif", fontSize:".8rem", letterSpacing:".1em", textTransform:"uppercase" }}>
-              <div style={{ fontSize:"2.5rem", marginBottom:16 }}>☕</div>Your cart is empty
+            <div style={{ textAlign: "center", padding: "60px 0", color: C.textMuted, fontFamily: "'Jost',sans-serif", fontSize: ".8rem", letterSpacing: ".1em", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: 16 }}>☕</div>Your cart is empty
             </div>
           ) : cart.map(item => (
-            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 16px", background:C.cream, borderRadius:8, border:`1px solid rgba(192,123,58,.2)` }}>
-              <div style={{ flex:1, minWidth:0 }}>
-                <h4 style={{ fontFamily:"'Playfair Display',serif", fontSize:".95rem", color:C.espresso, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</h4>
-                <span style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", color:C.textMuted, textTransform:"uppercase", letterSpacing:".08em" }}>${item.price.toFixed(2)} each</span>
+            <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: C.cream, borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ fontFamily: "'Playfair Display',serif", fontSize: ".95rem", color: C.espresso, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</h4>
+                <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em" }}>${item.price.toFixed(2)} each</span>
               </div>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8 }}>
-                <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.05rem", fontWeight:700, color:C.amber }}>${(item.price * item.qty).toFixed(2)}</span>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <button onClick={() => changeQty(item.id,-1)} style={{ width:26, height:26, borderRadius:"50%", border:`1px solid rgba(192,123,58,.4)`, background:"none", cursor:"pointer", color:C.textSecondary }}>−</button>
-                  <span style={{ fontFamily:"'Jost',sans-serif", fontSize:".85rem", fontWeight:500, minWidth:18, textAlign:"center" }}>{item.qty}</span>
-                  <button onClick={() => changeQty(item.id,1)} style={{ width:26, height:26, borderRadius:"50%", border:`1px solid rgba(192,123,58,.4)`, background:"none", cursor:"pointer", color:C.textSecondary }}>+</button>
-                  <button onClick={() => remove(item.id)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textMuted, fontSize:".9rem", marginLeft:4 }}>🗑</button>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.05rem", fontWeight: 700, color: C.amber }}>${(item.price * item.qty).toFixed(2)}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={() => changeQty(item.id, -1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>−</button>
+                  <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".85rem", fontWeight: 500, minWidth: 18, textAlign: "center" }}>{item.qty}</span>
+                  <button onClick={() => changeQty(item.id, 1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>+</button>
+                  <button onClick={() => remove(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: ".9rem", marginLeft: 4 }}>🗑</button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ padding:"24px 28px", borderTop:`1px solid rgba(192,123,58,.2)`, background:"#fff" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-            <span style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", letterSpacing:".15em", textTransform:"uppercase", color:C.textMuted }}>Total</span>
-            <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.7rem", fontWeight:700, color:C.espresso }}>${total.toFixed(2)}</span>
+        <div style={{ padding: "24px 28px", borderTop: `1px solid rgba(192,123,58,.2)`, background: "#fff" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.textMuted }}>Total</span>
+            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.7rem", fontWeight: 700, color: C.espresso }}>${total.toFixed(2)}</span>
           </div>
           <Btn full onClick={onCheckout}>Checkout — ${total.toFixed(2)}</Btn>
         </div>
@@ -261,53 +282,59 @@ function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout 
   );
 }
 
+// ── CHECKOUT MODAL ─────────────────────────────────────────────────────────
+
 function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
   const [done, setDone] = useState(false);
-  const handleSubmit = (e) => { e.preventDefault(); setDone(true); setTimeout(() => { setDone(false); onSuccess(); onClose(); }, 3000); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setDone(true);
+    setTimeout(() => { setDone(false); onSuccess(); onClose(); }, 3000);
+  };
   if (!open) return null;
   return (
-    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.65)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-      <div style={{ background:C.warmWhite, borderRadius:12, maxWidth:540, width:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:"0 32px 80px rgba(0,0,0,.4)", animation:"fadeUp .35s ease both" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"24px 28px", background:C.espresso, borderRadius:"12px 12px 0 0" }}>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:"1.3rem" }}>Checkout</h2>
-          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(245,239,230,.6)", fontSize:"1.5rem" }}>×</button>
+    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.65)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ background: C.warmWhite, borderRadius: 12, maxWidth: 540, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 32px 80px rgba(0,0,0,.4)", animation: "fadeUp .35s ease both" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", background: C.espresso, borderRadius: "12px 12px 0 0" }}>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", color: C.cream, fontSize: "1.3rem" }}>Checkout</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(245,239,230,.6)", fontSize: "1.5rem" }}>×</button>
         </div>
-        <div style={{ padding:28 }}>
+        <div style={{ padding: 28 }}>
           {done ? (
-            <div style={{ textAlign:"center", padding:"40px 0" }}>
-              <div style={{ fontSize:"3rem", marginBottom:16 }}>✅</div>
-              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.5rem", color:C.espresso, marginBottom:12 }}>Order Placed!</h3>
-              <p style={{ color:C.textSecondary }}>Thank you for your order at Qahwah House. We'll have it ready shortly.</p>
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <div style={{ fontSize: "3rem", marginBottom: 16 }}>✅</div>
+              <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.5rem", color: C.espresso, marginBottom: 12 }}>Order Placed!</h3>
+              <p style={{ color: C.textSecondary }}>Thank you for your order at Qahwah House. We'll have it ready shortly.</p>
             </div>
           ) : (
             <>
-              <div style={{ marginBottom:24 }}>
-                <p style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", letterSpacing:".15em", textTransform:"uppercase", color:C.textMuted, marginBottom:12 }}>Order Summary</p>
+              <div style={{ marginBottom: 24 }}>
+                <p style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.textMuted, marginBottom: 12 }}>Order Summary</p>
                 {cart.map(i => (
-                  <div key={i.id} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid rgba(192,123,58,.12)`, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", color:C.textSecondary }}>
+                  <div key={i.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid rgba(192,123,58,.12)`, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", color: C.textSecondary }}>
                     <span>{i.name} ×{i.qty}</span>
-                    <span style={{ color:C.amber, fontWeight:600 }}>${(i.price * i.qty).toFixed(2)}</span>
+                    <span style={{ color: C.amber, fontWeight: 600 }}>${(i.price * i.qty).toFixed(2)}</span>
                   </div>
                 ))}
-                <div style={{ display:"flex", justifyContent:"space-between", padding:"14px 0 0", fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"1.2rem", color:C.espresso }}>
-                  <span>Total</span><span style={{ color:C.amber }}>${total.toFixed(2)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 0 0", fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: "1.2rem", color: C.espresso }}>
+                  <span>Total</span><span style={{ color: C.amber }}>${total.toFixed(2)}</span>
                 </div>
               </div>
-              <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:16 }}>
-                {[{label:"Full Name",type:"text",placeholder:"Jane Smith"},{label:"Email",type:"email",placeholder:"jane@example.com"},{label:"Phone",type:"tel",placeholder:"+1 (555) 000-0000"}].map(f => (
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {[{ label: "Full Name", type: "text", placeholder: "Jane Smith" }, { label: "Email", type: "email", placeholder: "jane@example.com" }, { label: "Phone", type: "tel", placeholder: "+1 (555) 000-0000" }].map(f => (
                   <div key={f.label}>
-                    <label style={{ display:"block", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".12em", textTransform:"uppercase", color:C.textMuted, marginBottom:6 }}>{f.label}</label>
+                    <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>{f.label}</label>
                     <input type={f.type} placeholder={f.placeholder} required={f.type !== "tel"} className="qh-input"
-                      style={{ width:"100%", padding:"11px 14px", border:`1px solid rgba(192,123,58,.3)`, borderRadius:6, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", background:"#fff", color:C.espresso }} />
+                      style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
                   </div>
                 ))}
                 <div>
-                  <label style={{ display:"block", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".12em", textTransform:"uppercase", color:C.textMuted, marginBottom:6 }}>Order Type</label>
-                  <select required className="qh-input" style={{ width:"100%", padding:"11px 14px", border:`1px solid rgba(192,123,58,.3)`, borderRadius:6, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", background:"#fff", color:C.espresso }}>
+                  <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>Order Type</label>
+                  <select required className="qh-input" style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }}>
                     <option value="">Select...</option><option>Dine In</option><option>Takeout</option>
                   </select>
                 </div>
-                <Btn full style={{ marginTop:8 }}>Place Order — ${total.toFixed(2)}</Btn>
+                <Btn full style={{ marginTop: 8 }}>Place Order — ${total.toFixed(2)}</Btn>
               </form>
             </>
           )}
@@ -317,76 +344,85 @@ function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
   );
 }
 
+// ── PAGE HERO ──────────────────────────────────────────────────────────────
+
 function PageHero({ label, title, subtitle }) {
   return (
-    <section style={{ background:`linear-gradient(160deg,#1a0a02 0%,#2d1505 50%,#4a1a08 100%)`, minHeight:340, display:"flex", alignItems:"flex-end", padding:"80px 40px 56px", position:"relative", overflow:"hidden" }}>
-      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 30% 70%,rgba(192,123,58,.15) 0%,transparent 60%)" }} />
-      <div style={{ position:"relative", zIndex:1, maxWidth:1200, margin:"0 auto", width:"100%" }}>
+    <section style={{ background: `linear-gradient(160deg,#1a0a02 0%,#2d1505 50%,#4a1a08 100%)`, minHeight: 340, display: "flex", alignItems: "flex-end", padding: "80px 40px 56px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 70%,rgba(192,123,58,.15) 0%,transparent 60%)" }} />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <SectionLabel>{label}</SectionLabel>
-        <h1 style={{ fontFamily:"'Playfair Display',serif", color:C.cream, fontSize:"clamp(2.5rem,6vw,5rem)", marginBottom:14 }} dangerouslySetInnerHTML={{ __html: title }} />
-        <p style={{ color:"rgba(245,239,230,.6)", fontSize:"1.1rem", maxWidth:500 }}>{subtitle}</p>
+        <h1 style={{ fontFamily: "'Playfair Display',serif", color: C.cream, fontSize: "clamp(2.5rem,6vw,5rem)", marginBottom: 14 }} dangerouslySetInnerHTML={{ __html: title }} />
+        <p style={{ color: "rgba(245,239,230,.6)", fontSize: "1.1rem", maxWidth: 500 }}>{subtitle}</p>
       </div>
     </section>
   );
 }
 
+// ── FOOTER ─────────────────────────────────────────────────────────────────
+
 function Footer({ setPage }) {
   return (
-    <footer style={{ background:C.espresso }}>
-      <div style={{ padding:"64px 0 0" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:48 }}>
+    <footer style={{ background: C.espresso }}>
+      <div style={{ padding: "64px 0 0" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 48 }}>
           <div>
-            <button onClick={() => setPage("home")} style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"'Playfair Display',serif", fontSize:"1.3rem", fontWeight:700, color:C.cream, display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-              ☕ Qahwah<span style={{ color:C.amber }}>House</span>
+            <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Playfair Display',serif", fontSize: "1.3rem", fontWeight: 700, color: C.cream, display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              ☕ Qahwah<span style={{ color: C.amber }}>House</span>
             </button>
-            <p style={{ color:"rgba(245,239,230,.55)", fontSize:".95rem", marginBottom:20 }}>Eight generations of Yemeni coffee mastery.</p>
+            <p style={{ color: "rgba(245,239,230,.55)", fontSize: ".95rem", marginBottom: 20 }}>Eight generations of Yemeni coffee mastery.</p>
           </div>
           <div>
-            <h4 style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", letterSpacing:".15em", textTransform:"uppercase", color:C.amber, marginBottom:20 }}>Quick Links</h4>
-            <ul style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              {NAV_LINKS.map(l => <li key={l.page}><button onClick={() => { setPage(l.page); window.scrollTo(0,0); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(245,239,230,.6)", fontFamily:"'Jost',sans-serif", fontSize:".85rem" }}>{l.label}</button></li>)}
+            <h4 style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.amber, marginBottom: 20 }}>Quick Links</h4>
+            <ul style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {NAV_LINKS.map(l => (
+                <li key={l.page}>
+                  <button onClick={() => { setPage(l.page); window.scrollTo(0, 0); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Jost',sans-serif", fontSize: ".85rem", color: "rgba(245,239,230,.55)" }}>{l.label}</button>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
-            <h4 style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", letterSpacing:".15em", textTransform:"uppercase", color:C.amber, marginBottom:20 }}>Hours</h4>
-            {[["Mon–Thu","7am–10pm"],["Friday","7am–11pm"],["Saturday","8am–11pm"],["Sunday","8am–9pm"]].map(([d,t]) => (
-              <div key={d} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid rgba(192,123,58,.1)`, fontFamily:"'Jost',sans-serif", fontSize:".78rem", color:"rgba(245,239,230,.55)" }}>
+            <h4 style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.amber, marginBottom: 20 }}>Hours</h4>
+            {[["Mon–Thu", "7am–10pm"], ["Friday", "7am–11pm"], ["Saturday", "8am–11pm"], ["Sunday", "8am–9pm"]].map(([d, t]) => (
+              <div key={d} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid rgba(192,123,58,.1)`, fontFamily: "'Jost',sans-serif", fontSize: ".78rem", color: "rgba(245,239,230,.55)" }}>
                 <span>{d}</span><span>{t}</span>
               </div>
             ))}
           </div>
           <div>
-            <h4 style={{ fontFamily:"'Jost',sans-serif", fontSize:".7rem", letterSpacing:".15em", textTransform:"uppercase", color:C.amber, marginBottom:20 }}>Contact</h4>
-            <p style={{ color:"rgba(245,239,230,.55)", fontSize:".9rem", lineHeight:1.8 }}>162 Bedford Ave<br />Brooklyn, NY 11211</p>
-            <a href="mailto:coffee@qahwahhouse.com" style={{ display:"block", color:C.amber, fontFamily:"'Jost',sans-serif", fontSize:".8rem", marginTop:12 }}>coffee@qahwahhouse.com</a>
+            <h4 style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.amber, marginBottom: 20 }}>Contact</h4>
+            <p style={{ color: "rgba(245,239,230,.55)", fontSize: ".9rem", lineHeight: 1.8 }}>162 Bedford Ave<br />Brooklyn, NY 11211</p>
+            <a href="mailto:coffee@qahwahhouse.com" style={{ display: "block", color: C.amber, fontFamily: "'Jost',sans-serif", fontSize: ".8rem", marginTop: 12 }}>coffee@qahwahhouse.com</a>
           </div>
         </div>
       </div>
-      <div style={{ borderTop:`1px solid rgba(192,123,58,.15)`, marginTop:48, padding:"20px 24px", textAlign:"center" }}>
-        <p style={{ color:"rgba(245,239,230,.3)", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".1em" }}>© 2026 Qahwah House. All Rights Reserved.</p>
+      <div style={{ borderTop: `1px solid rgba(192,123,58,.15)`, marginTop: 48, padding: "20px 24px", textAlign: "center" }}>
+        <p style={{ color: "rgba(245,239,230,.3)", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".1em" }}>© 2026 Qahwah House. All Rights Reserved.</p>
       </div>
     </footer>
   );
 }
 
-// ── MENU CARD ──────────────────────────────────────────────────────────────
+// ── MENU CARD (grid view) ──────────────────────────────────────────────────
+
 function MenuCard({ item, onAdd, added }) {
   return (
-    <div className="menu-card" style={{ background:C.cream, border:`1px solid rgba(192,123,58,.2)`, borderRadius:12, overflow:"hidden", display:"flex", flexDirection:"column" }}>
-      <div style={{ height:200, overflow:"hidden", position:"relative" }}>
-        <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+    <div className="menu-card" style={{ background: C.cream, border: `1px solid rgba(192,123,58,.2)`, borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ height: 200, overflow: "hidden", position: "relative" }}>
+        <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
-      <div style={{ padding:"18px 20px 20px", flex:1, display:"flex", flexDirection:"column", gap:6 }}>
-        <span style={{ display:"inline-block", background:C.amber, color:"#fff", fontFamily:"'Jost',sans-serif", fontSize:".55rem", fontWeight:600, letterSpacing:".12em", textTransform:"uppercase", padding:"2px 10px", borderRadius:20, width:"fit-content" }}>{item.badge}</span>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.1rem", color:C.espresso, lineHeight:1.3 }}>{item.name}</div>
-        <div style={{ fontFamily:"'Jost',sans-serif", fontSize:".82rem", color:C.textMuted, lineHeight:1.5, flex:1 }}>{item.desc}</div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:14, gap:8 }}>
+      <div style={{ padding: "18px 20px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+        <span style={{ display: "inline-block", background: C.amber, color: "#fff", fontFamily: "'Jost',sans-serif", fontSize: ".55rem", fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", padding: "2px 10px", borderRadius: 20, width: "fit-content" }}>{item.badge}</span>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.1rem", color: C.espresso, lineHeight: 1.3 }}>{item.name}</div>
+        <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".82rem", color: C.textMuted, lineHeight: 1.5, flex: 1 }}>{item.desc}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14, gap: 8 }}>
           <div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.2rem", fontWeight:700, color:C.amber }}>${item.price.toFixed(2)}</div>
-            <div style={{ fontFamily:"'Jost',sans-serif", fontSize:".65rem", letterSpacing:".08em", color:C.textMuted, textTransform:"uppercase" }}>{item.size}</div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.2rem", fontWeight: 700, color: C.amber }}>${item.price.toFixed(2)}</div>
+            <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".65rem", letterSpacing: ".08em", color: C.textMuted, textTransform: "uppercase" }}>{item.size}</div>
           </div>
           <button onClick={onAdd} className={added ? "add-pulse" : ""}
-            style={{ background: added ? "#2d6a4f" : C.amber, color:"#fff", border:"none", borderRadius:8, fontFamily:"'Jost',sans-serif", fontSize:".65rem", fontWeight:500, letterSpacing:".1em", textTransform:"uppercase", padding:"10px 16px", cursor:"pointer", transition:"background .2s", display:"flex", alignItems:"center", gap:5, whiteSpace:"nowrap" }}>
+            style={{ background: added ? "#2d6a4f" : C.amber, color: "#fff", border: "none", borderRadius: 8, fontFamily: "'Jost',sans-serif", fontSize: ".65rem", fontWeight: 500, letterSpacing: ".1em", textTransform: "uppercase", padding: "10px 16px", cursor: "pointer", transition: "background .2s", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
             {added ? "✓ Added" : "+ Add"}
           </button>
         </div>
@@ -395,120 +431,303 @@ function MenuCard({ item, onAdd, added }) {
   );
 }
 
+// ── MENU SLIDER ────────────────────────────────────────────────────────────
+
+function MenuSlider({ items, onAdd, showToast }) {
+  const [idx, setIdx] = useState(0);
+  const [addedIds, setAddedIds] = useState({});
+  const [fading, setFading] = useState(false);
+
+  const go = (dir) => {
+    setFading(true);
+    setTimeout(() => {
+      setIdx(i => (i + dir + items.length) % items.length);
+      setFading(false);
+    }, 200);
+  };
+
+  const goTo = (i) => {
+    if (i === idx) return;
+    setFading(true);
+    setTimeout(() => { setIdx(i); setFading(false); }, 200);
+  };
+
+  const item = items[idx];
+
+  const handleAdd = (it) => {
+    onAdd(it);
+    showToast(`${it.name} added!`);
+    setAddedIds(v => ({ ...v, [it.id]: true }));
+    setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[it.id]; return n; }), 1400);
+  };
+
+  return (
+    <div style={{ background: C.espresso, position: "relative", overflow: "hidden" }}>
+      {/* Image area */}
+      <div style={{ position: "relative", height: "clamp(380px, 55vw, 560px)", display: "flex", alignItems: "stretch" }}>
+        {/* Left dark panel */}
+        <div style={{ flex: 1, background: "rgba(10,4,1,.7)", minWidth: 0 }} />
+
+        {/* Center image */}
+        <div style={{
+          width: "clamp(280px, 36vw, 480px)",
+          flexShrink: 0,
+          overflow: "hidden",
+          opacity: fading ? 0 : 1,
+          transform: fading ? "scale(1.03)" : "scale(1)",
+          transition: "opacity .2s ease, transform .2s ease",
+        }}>
+          <img
+            src={item.img}
+            alt={item.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
+
+        {/* Right dark panel */}
+        <div style={{ flex: 1, background: "rgba(10,4,1,.7)", minWidth: 0 }} />
+
+        {/* Left gradient */}
+        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: "32%", background: "linear-gradient(to right, rgba(26,10,2,1) 0%, rgba(26,10,2,0) 100%)", pointerEvents: "none" }} />
+        {/* Right gradient */}
+        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "32%", background: "linear-gradient(to left, rgba(26,10,2,1) 0%, rgba(26,10,2,0) 100%)", pointerEvents: "none" }} />
+        {/* Bottom gradient */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(26,10,2,.9) 0%, transparent 100%)", pointerEvents: "none" }} />
+
+        {/* Prev arrow */}
+        <button
+          className="slider-arrow slider-arrows-left"
+          onClick={() => go(-1)}
+          style={{
+            position: "absolute", left: 32, top: "50%", transform: "translateY(-50%)",
+            width: 52, height: 52, borderRadius: "50%",
+            background: "rgba(26,10,2,.4)",
+            border: `1px solid rgba(245,239,230,.4)`,
+            color: C.cream, fontSize: "1.4rem",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 10, transition: "all .2s", lineHeight: 1,
+          }}
+        >‹</button>
+
+        {/* Next arrow */}
+        <button
+          className="slider-arrow slider-arrows-right"
+          onClick={() => go(1)}
+          style={{
+            position: "absolute", right: 32, top: "50%", transform: "translateY(-50%)",
+            width: 52, height: 52, borderRadius: "50%",
+            background: "rgba(26,10,2,.4)",
+            border: `1px solid rgba(245,239,230,.4)`,
+            color: C.cream, fontSize: "1.4rem",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 10, transition: "all .2s", lineHeight: 1,
+          }}
+        >›</button>
+      </div>
+
+      {/* Info bar */}
+      <div
+        className="slider-info-bar"
+        style={{
+          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+          padding: "24px 72px 20px",
+          opacity: fading ? 0 : 1,
+          transition: "opacity .2s ease",
+          gap: 24, flexWrap: "wrap",
+        }}
+      >
+        {/* Left: badge + name + desc */}
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <span style={{
+            display: "inline-block", background: C.amber, color: "#fff",
+            fontFamily: "'Jost',sans-serif", fontSize: ".58rem", fontWeight: 600,
+            letterSpacing: ".16em", textTransform: "uppercase",
+            padding: "3px 14px", borderRadius: 20, marginBottom: 12,
+          }}>{item.badge}</span>
+          <h2 style={{
+            fontFamily: "'Playfair Display',serif", fontWeight: 900, color: C.cream,
+            fontSize: "clamp(1.8rem,3.5vw,2.8rem)", lineHeight: 1.1, marginBottom: 10,
+          }}>{item.name}</h2>
+          <p style={{ color: "rgba(245,239,230,.6)", fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", maxWidth: 400, lineHeight: 1.6 }}>
+            {item.desc}
+          </p>
+        </div>
+
+        {/* Right: price + size + button */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,2.8rem)", fontWeight: 700, color: C.amber, lineHeight: 1 }}>
+            ${item.price.toFixed(2)}
+          </div>
+          <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".65rem", letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(245,239,230,.4)", marginBottom: 4 }}>
+            {item.size}
+          </div>
+          <button
+            onClick={() => handleAdd(item)}
+            style={{
+              background: addedIds[item.id] ? "#2d6a4f" : C.amber,
+              color: "#fff", border: "none", borderRadius: 6,
+              padding: "13px 32px",
+              fontFamily: "'Jost',sans-serif", fontSize: ".72rem", fontWeight: 500,
+              letterSpacing: ".14em", textTransform: "uppercase",
+              cursor: "pointer", transition: "background .2s", whiteSpace: "nowrap",
+            }}
+          >
+            {addedIds[item.id] ? "✓ Added" : "+ Add to Cart"}
+          </button>
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "10px 0 28px" }}>
+        {items.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            style={{
+              width: i === idx ? 28 : 8, height: 8, borderRadius: 4,
+              background: i === idx ? C.amber : "rgba(192,123,58,.3)",
+              border: "none", cursor: "pointer", transition: "all .3s", padding: 0,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── HOME PAGE ──────────────────────────────────────────────────────────────
+
 function HomePage({ setPage, onAdd, showToast }) {
   const [galleryIdx, setGalleryIdx] = useState(0);
-  useEffect(() => { const id = setInterval(() => setGalleryIdx(i => (i + 1) % GALLERY_SLIDES.length), 4000); return () => clearInterval(id); }, []);
+  useEffect(() => {
+    const id = setInterval(() => setGalleryIdx(i => (i + 1) % GALLERY_SLIDES.length), 4000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <>
-      <section style={{ position:"relative", minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
+      {/* Hero */}
+      <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         <div className="hero-bg-img" />
         <div className="hero-bg-overlay" />
         <div className="hero-grain" />
-        <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"0 24px", maxWidth:800 }}>
-          <p className="anim-fadeup" style={{ fontFamily:"'Jost',sans-serif", fontSize:".75rem", letterSpacing:".25em", textTransform:"uppercase", color:C.amber, marginBottom:24 }}>Eight Generations of Excellence</p>
-          <h1 className="anim-fadeup-d1" style={{ fontFamily:"'Playfair Display',serif", fontWeight:900, color:C.cream, lineHeight:.9, marginBottom:32, fontSize:"clamp(4rem,12vw,9rem)" }}>
-            Qahwah<br /><em style={{ color:C.amber }}>House</em>
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "0 24px", maxWidth: 800 }}>
+          <p className="anim-fadeup" style={{ fontFamily: "'Jost',sans-serif", fontSize: ".75rem", letterSpacing: ".25em", textTransform: "uppercase", color: C.amber, marginBottom: 24 }}>Eight Generations of Excellence</p>
+          <h1 className="anim-fadeup-d1" style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, color: C.cream, lineHeight: .9, marginBottom: 32, fontSize: "clamp(4rem,12vw,9rem)" }}>
+            Qahwah<br /><em style={{ color: C.amber }}>House</em>
           </h1>
-          <p className="anim-fadeup-d2" style={{ color:"rgba(245,239,230,.65)", fontSize:"1.1rem", maxWidth:500, margin:"0 auto 40px" }}>Authentic Yemeni Coffee Culture — From the highlands of Yemen to your cup</p>
-          <div className="anim-fadeup-d3" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
-            <Btn onClick={() => { setPage("menu"); window.scrollTo(0,0); }}>View Our Menu</Btn>
-            <Btn variant="outline" onClick={() => { setPage("about"); window.scrollTo(0,0); }}>Our Story</Btn>
+          <p className="anim-fadeup-d2" style={{ color: "rgba(245,239,230,.65)", fontSize: "1.1rem", maxWidth: 500, margin: "0 auto 40px" }}>Authentic Yemeni Coffee Culture — From the highlands of Yemen to your cup</p>
+          <div className="anim-fadeup-d3" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+            <Btn onClick={() => { setPage("menu"); window.scrollTo(0, 0); }}>View Our Menu</Btn>
+            <Btn variant="outline" onClick={() => { setPage("about"); window.scrollTo(0, 0); }}>Our Story</Btn>
           </div>
         </div>
-        <div style={{ position:"absolute", bottom:40, left:"50%", transform:"translateX(-50%)", textAlign:"center", color:"rgba(245,239,230,.4)", fontFamily:"'Jost',sans-serif", fontSize:".65rem", letterSpacing:".2em", textTransform:"uppercase" }}>
+        <div style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", textAlign: "center", color: "rgba(245,239,230,.4)", fontFamily: "'Jost',sans-serif", fontSize: ".65rem", letterSpacing: ".2em", textTransform: "uppercase" }}>
           Scroll<div className="scroll-line" />
         </div>
       </section>
 
-      <section style={{ padding:"100px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ textAlign:"center", marginBottom:64 }}>
+      {/* Features */}
+      <section style={{ padding: "100px 0", background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
             <SectionLabel>Why Choose Us</SectionLabel>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>Coffee Crafted with<br /><em>Heritage & Heart</em></h2>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>Coffee Crafted with<br /><em>Heritage & Heart</em></h2>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:24 }}>
-            {[{icon:"🌿",title:"Grown Organically",desc:"Sourced from the renowned Al Hasbani Farms in Yemen's highlands — only the highest quality Arabica beans."},{icon:"🫘",title:"Farm to Cup",desc:"Grown on our eight-generation family farms, then roasted in small batches by our passionate team of artisans."},{icon:"✨",title:"Unique Flavors",desc:"A curated selection offering diverse flavor profiles, from spiced cardamom blends to single-origin pour-overs."},{icon:"🏆",title:"Industry Leader",desc:"Roasted to order, ensuring every bean arrives at the peak of its flavor. No stale coffee, ever."},{icon:"💎",title:"Unmatched Quality",desc:"Direct collaboration with farmers ensures fair compensation and environmentally friendly cultivation."},{icon:"🤝",title:"Building Community",desc:"Your satisfaction is prioritized above all else, with a dedicated team ready to share the Yemeni coffee experience."}].map(f => (
-              <div key={f.title} className="feature-card" style={{ padding:"40px 32px", background:"#fff", borderRadius:8, border:`1px solid rgba(192,123,58,.15)` }}>
-                <div style={{ fontSize:"2rem", marginBottom:16 }}>{f.icon}</div>
-                <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.2rem", color:C.espresso, marginBottom:10 }}>{f.title}</h3>
-                <p style={{ color:C.textSecondary, fontSize:".95rem", lineHeight:1.7 }}>{f.desc}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 24 }}>
+            {[
+              { icon: "🌿", title: "Grown Organically", desc: "Sourced from the renowned Al Hasbani Farms in Yemen's highlands — only the highest quality Arabica beans." },
+              { icon: "🫘", title: "Farm to Cup", desc: "Grown on our eight-generation family farms, then roasted in small batches by our passionate team of artisans." },
+              { icon: "✨", title: "Unique Flavors", desc: "A curated selection offering diverse flavor profiles, from spiced cardamom blends to single-origin pour-overs." },
+              { icon: "🏆", title: "Industry Leader", desc: "Roasted to order, ensuring every bean arrives at the peak of its flavor. No stale coffee, ever." },
+              { icon: "💎", title: "Unmatched Quality", desc: "Direct collaboration with farmers ensures fair compensation and environmentally friendly cultivation." },
+              { icon: "🤝", title: "Building Community", desc: "Your satisfaction is prioritized above all else, with a dedicated team ready to share the Yemeni coffee experience." },
+            ].map(f => (
+              <div key={f.title} className="feature-card" style={{ padding: "40px 32px", background: "#fff", borderRadius: 8, border: `1px solid rgba(192,123,58,.15)` }}>
+                <div style={{ fontSize: "2rem", marginBottom: 16 }}>{f.icon}</div>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.2rem", color: C.espresso, marginBottom: 10 }}>{f.title}</h3>
+                <p style={{ color: C.textSecondary, fontSize: ".95rem", lineHeight: 1.7 }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div style={{ background:C.espresso, display:"grid", gridTemplateColumns:"repeat(4,1fr)" }}>
-        {[["8+","Generations"],["100%","Organic Beans"],["30+","Locations"],["100+","Products"]].map(([n,l],i) => (
-          <div key={l} className="stat-sep" style={{ borderRight: i < 3 ? `1px solid rgba(192,123,58,.2)` : "none", padding:"40px 24px", textAlign:"center" }}>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", fontWeight:700, color:C.amber }}>{n}</div>
-            <div style={{ fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".15em", textTransform:"uppercase", color:"rgba(245,239,230,.5)", marginTop:8 }}>{l}</div>
+      {/* Stats */}
+      <div style={{ background: C.espresso, display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
+        {[["8+", "Generations"], ["100%", "Organic Beans"], ["30+", "Locations"], ["100+", "Products"]].map(([n, l], i) => (
+          <div key={l} className="stat-sep" style={{ borderRight: i < 3 ? `1px solid rgba(192,123,58,.2)` : "none", padding: "40px 24px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 700, color: C.amber }}>{n}</div>
+            <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".15em", textTransform: "uppercase", color: "rgba(245,239,230,.5)", marginTop: 8 }}>{l}</div>
           </div>
         ))}
       </div>
 
-      <section style={{ padding:"100px 0", background:C.warmWhite, overflow:"hidden" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", textAlign:"center", marginBottom:48 }}>
+      {/* Gallery */}
+      <section style={{ padding: "100px 0", background: C.warmWhite, overflow: "hidden" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center", marginBottom: 48 }}>
           <SectionLabel>Gallery</SectionLabel>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>A Feast for<br /><em>the Senses</em></h2>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>A Feast for<br /><em>the Senses</em></h2>
         </div>
-        <div style={{ overflow:"hidden" }}>
-          <div className="gallery-slider" style={{ transform:`translateX(calc(-${galleryIdx * 33.333}%))` }}>
-            {GALLERY_SLIDES.map((s,i) => (
-              <div key={i} style={{ minWidth:"33.333%", flexShrink:0, padding:"0 8px" }} className="gallery-slide">
-                <div style={{ position:"relative", overflow:"hidden", height:340, borderRadius:8 }}>
-                  <img src={s.img} alt={s.caption} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                  <div style={{ position:"absolute", bottom:16, left:16, color:"#fff", fontFamily:"'Cormorant Garamond',serif", fontSize:"1.2rem", textShadow:"0 2px 8px rgba(0,0,0,.6)" }}>{s.caption}</div>
+        <div style={{ overflow: "hidden" }}>
+          <div className="gallery-slider" style={{ transform: `translateX(calc(-${galleryIdx * 33.333}%))` }}>
+            {GALLERY_SLIDES.map((s, i) => (
+              <div key={i} style={{ minWidth: "33.333%", flexShrink: 0, padding: "0 8px" }} className="gallery-slide">
+                <div style={{ position: "relative", overflow: "hidden", height: 340, borderRadius: 8 }}>
+                  <img src={s.img} alt={s.caption} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div style={{ position: "absolute", bottom: 16, left: 16, color: "#fff", fontFamily: "'Cormorant Garamond',serif", fontSize: "1.2rem", textShadow: "0 2px 8px rgba(0,0,0,.6)" }}>{s.caption}</div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:24 }}>
-            {GALLERY_SLIDES.map((_,i) => <button key={i} onClick={() => setGalleryIdx(i)} style={{ width: i === galleryIdx ? 24 : 8, height:8, borderRadius:4, background: i === galleryIdx ? C.amber : "rgba(192,123,58,.3)", border:"none", cursor:"pointer", transition:"all .3s" }} />)}
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
+            {GALLERY_SLIDES.map((_, i) => (
+              <button key={i} onClick={() => setGalleryIdx(i)} style={{ width: i === galleryIdx ? 24 : 8, height: 8, borderRadius: 4, background: i === galleryIdx ? C.amber : "rgba(192,123,58,.3)", border: "none", cursor: "pointer", transition: "all .3s" }} />
+            ))}
           </div>
         </div>
       </section>
 
-      <section style={{ padding:"100px 0", background:C.cream }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ textAlign:"center", marginBottom:64 }}>
+      {/* Menu Preview */}
+      <section style={{ padding: "100px 0", background: C.cream }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
             <SectionLabel>Our Menu</SectionLabel>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>Signature<br /><em>Creations</em></h2>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>Signature<br /><em>Creations</em></h2>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:24 }}>
-            {[DRINKS[0],DRINKS[1],DRINKS[2]].map((item,i) => (
-              <div key={item.id} className="menu-preview-card" style={{ background:"#fff", borderRadius:8, padding:"40px 32px", border: i === 1 ? `2px solid ${C.amber}` : `1px solid rgba(192,123,58,.2)`, position:"relative" }}>
-                {i === 1 && <div style={{ position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)", background:C.amber, color:"#fff", fontFamily:"'Jost',sans-serif", fontSize:".6rem", letterSpacing:".12em", textTransform:"uppercase", padding:"4px 16px", borderRadius:20 }}>Most Popular</div>}
-                <div style={{ fontSize:"2.5rem", marginBottom:16 }}>☕</div>
-                <h3 style={{ fontFamily:"'Playfair Display',serif", color:C.espresso, marginBottom:8 }}>{item.name}</h3>
-                <p style={{ color:C.textSecondary, fontSize:".95rem", marginBottom:20 }}>{item.desc}</p>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.3rem", fontWeight:700, color:C.amber }}>${item.price.toFixed(2)}</span>
-                  <button onClick={() => { onAdd(item); showToast(`${item.name} added!`); }} style={{ background:C.amber, color:"#fff", border:"none", borderRadius:4, padding:"8px 16px", cursor:"pointer", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".1em", textTransform:"uppercase" }}>Add</button>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 24 }}>
+            {[DRINKS[0], DRINKS[1], DRINKS[2]].map((item, i) => (
+              <div key={item.id} className="menu-preview-card" style={{ background: "#fff", borderRadius: 8, padding: "40px 32px", border: i === 1 ? `2px solid ${C.amber}` : `1px solid rgba(192,123,58,.2)`, position: "relative" }}>
+                {i === 1 && <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: C.amber, color: "#fff", fontFamily: "'Jost',sans-serif", fontSize: ".6rem", letterSpacing: ".12em", textTransform: "uppercase", padding: "4px 16px", borderRadius: 20 }}>Most Popular</div>}
+                <div style={{ fontSize: "2.5rem", marginBottom: 16 }}>☕</div>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 8 }}>{item.name}</h3>
+                <p style={{ color: C.textSecondary, fontSize: ".95rem", marginBottom: 20 }}>{item.desc}</p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.3rem", fontWeight: 700, color: C.amber }}>${item.price.toFixed(2)}</span>
+                  <button onClick={() => { onAdd(item); showToast(`${item.name} added!`); }} style={{ background: C.amber, color: "#fff", border: "none", borderRadius: 4, padding: "8px 16px", cursor: "pointer", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".1em", textTransform: "uppercase" }}>Add</button>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ textAlign:"center", marginTop:48 }}>
-            <Btn onClick={() => { setPage("menu"); window.scrollTo(0,0); }}>Full Menu</Btn>
+          <div style={{ textAlign: "center", marginTop: 48 }}>
+            <Btn onClick={() => { setPage("menu"); window.scrollTo(0, 0); }}>Full Menu</Btn>
           </div>
         </div>
       </section>
 
-      <section style={{ padding:"100px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ textAlign:"center", marginBottom:64 }}>
+      {/* Testimonials */}
+      <section style={{ padding: "100px 0", background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
             <SectionLabel>Testimonials</SectionLabel>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>What Our<br /><em>Guests Say</em></h2>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>What Our<br /><em>Guests Say</em></h2>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:24 }}>
-            {TESTIMONIALS.map((t,i) => (
-              <div key={i} style={{ background:"#fff", borderRadius:8, padding:"40px 32px", border:`1px solid rgba(192,123,58,.15)` }}>
-                <div className="stars" style={{ marginBottom:16 }}>★★★★★</div>
-                <p style={{ color:C.textSecondary, fontSize:"1rem", lineHeight:1.7, marginBottom:20, fontStyle:"italic" }}>"{t.text}"</p>
-                <div style={{ fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".1em", textTransform:"uppercase", color:C.textMuted }}>— {t.author}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 24 }}>
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} style={{ background: "#fff", borderRadius: 8, padding: "40px 32px", border: `1px solid rgba(192,123,58,.15)` }}>
+                <div className="stars" style={{ marginBottom: 16 }}>★★★★★</div>
+                <p style={{ color: C.textSecondary, fontSize: "1rem", lineHeight: 1.7, marginBottom: 20, fontStyle: "italic" }}>"{t.text}"</p>
+                <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".1em", textTransform: "uppercase", color: C.textMuted }}>— {t.author}</div>
               </div>
             ))}
           </div>
@@ -517,10 +736,7 @@ function HomePage({ setPage, onAdd, showToast }) {
     </>
   );
 }
-
-// ── MENU PAGE ──────────────────────────────────────────────────────────────
-function MenuPage({ onAdd, showToast }) {
-  const [activeTab, setActiveTab] = useState("drinks");
+function CardGrid({ items, onAdd, showToast }) {
   const [addedIds, setAddedIds] = useState({});
 
   const handleAdd = (item) => {
@@ -530,39 +746,69 @@ function MenuPage({ onAdd, showToast }) {
     setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[item.id]; return n; }), 1400);
   };
 
+  return (
+    <div className="menu-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+      {items.map(item => (
+        <MenuCard
+          key={item.id}
+          item={item}
+          added={!!addedIds[item.id]}
+          onAdd={() => handleAdd(item)}
+        />
+      ))}
+    </div>
+  );
+}
+// ── MENU PAGE ──────────────────────────────────────────────────────────────
+
+function MenuPage({ onAdd, showToast }) {
+  const [activeTab, setActiveTab] = useState("drinks");
   const items = activeTab === "drinks" ? DRINKS : PASTRIES;
 
   return (
     <>
       <PageHero label="Our Menu" title="Taste <em>Tradition</em>" subtitle="From spiced ancient brews to artisan pastries, every item is crafted with heritage." />
-      <section style={{ padding:"80px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-
+      <section style={{ background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           {/* Tabs */}
-          <div style={{ display:"flex", borderBottom:`1px solid rgba(192,123,58,.2)`, marginBottom:48, overflowX:"auto" }}>
-            {[["drinks","Drinks & Coffee"],["pastries","Pastries & Sweets"]].map(([key,label]) => (
+          <div style={{ display: "flex", borderBottom: `1px solid rgba(192,123,58,.2)`, overflowX: "auto", paddingTop: 40 }}>
+            {[["drinks", "Drinks & Coffee"], ["pastries", "Pastries & Sweets"]].map(([key, label]) => (
               <button key={key} onClick={() => setActiveTab(key)}
-                style={{ fontFamily:"'Jost',sans-serif", fontSize:".8rem", fontWeight:500, letterSpacing:".1em", textTransform:"uppercase", padding:"16px 32px", border:"none", background:"transparent", cursor:"pointer", transition:"all .3s", whiteSpace:"nowrap", borderBottom:`2px solid ${activeTab === key ? C.amber : "transparent"}`, marginBottom:-1, color: activeTab === key ? C.amber : C.textMuted }}>
+                style={{
+                  fontFamily: "'Jost',sans-serif", fontSize: ".8rem", fontWeight: 500,
+                  letterSpacing: ".1em", textTransform: "uppercase", padding: "16px 32px",
+                  border: "none", background: "transparent", cursor: "pointer",
+                  transition: "all .3s", whiteSpace: "nowrap",
+                  borderBottom: `2px solid ${activeTab === key ? C.amber : "transparent"}`,
+                  marginBottom: -1,
+                  color: activeTab === key ? C.amber : C.textMuted,
+                }}>
                 {label}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Card Grid */}
-          <div className="menu-card-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
-            {items.map(item => (
-              <MenuCard key={item.id} item={item} onAdd={() => handleAdd(item)} added={!!addedIds[item.id]} />
-            ))}
-          </div>
+        {/* Slider */}
+        <MenuSlider items={items} onAdd={onAdd} showToast={showToast} />
 
-          {/* Add-ons */}
-          <div style={{ marginTop:64, padding:40, background:C.cream, borderRadius:8, border:`1px solid rgba(192,123,58,.2)` }}>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", color:C.espresso, marginBottom:24, fontSize:"1.4rem" }}>Add-Ons & Customizations</h3>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))" }}>
-              {ADDONS.map(([name,price]) => (
-                <div key={name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 16px", borderBottom:`1px solid rgba(192,123,58,.15)`, fontFamily:"'Cormorant Garamond',serif", fontSize:".95rem", color:C.textSecondary }}>
+        {/* Cards Grid */}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 0" }}>
+          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".2em", textTransform: "uppercase", color: C.textMuted, marginBottom: 24 }}>
+            All {activeTab === "drinks" ? "Drinks" : "Pastries"}
+          </p>
+          <CardGrid items={items} onAdd={onAdd} showToast={showToast} />
+        </div>
+
+        {/* Add-ons */}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 80px" }}>
+          <div style={{ padding: 40, background: C.cream, borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
+            <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 24, fontSize: "1.4rem" }}>Add-Ons & Customizations</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
+              {ADDONS.map(([name, price]) => (
+                <div key={name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid rgba(192,123,58,.15)`, fontFamily: "'Cormorant Garamond',serif", fontSize: ".95rem", color: C.textSecondary }}>
                   <span>{name}</span>
-                  <span style={{ fontFamily:"'Playfair Display',serif", fontWeight:600, color:C.amber }}>{price}</span>
+                  <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 600, color: C.amber }}>{price}</span>
                 </div>
               ))}
             </div>
@@ -574,62 +820,69 @@ function MenuPage({ onAdd, showToast }) {
 }
 
 // ── ABOUT PAGE ─────────────────────────────────────────────────────────────
+
 function AboutPage() {
   return (
     <>
       <PageHero label="Est. 1800s" title="Our <em>Story</em>" subtitle="Eight generations of coffee mastery, from Yemen to the world" />
-      <section style={{ padding:"100px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:80, alignItems:"center" }}>
+
+      {/* Intro */}
+      <section style={{ padding: "100px 0", background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
             <div>
               <SectionLabel>The Beginning</SectionLabel>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso, marginBottom:24 }}>Where Coffee<br /><em>Was Born</em></h2>
-              <p style={{ color:C.textSecondary, fontSize:"1.1rem", lineHeight:1.8, marginBottom:16, fontStyle:"italic" }}>Long before coffee became the world's most beloved beverage, it was a Yemeni secret — cultivated on terraced mountain farms, brewed in family homes, and shared as a symbol of hospitality and community.</p>
-              <p style={{ color:C.textSecondary, lineHeight:1.8, marginBottom:16 }}>Qahwah House traces its roots to the ancient coffee-growing highlands of Yemen, where our family has cultivated premium Arabica coffee beans for over eight generations.</p>
-              <p style={{ color:C.textSecondary, lineHeight:1.8 }}>The word "Qahwah" (قهوة) is the original Arabic word that gave rise to "coffee" in every language on earth. Yemen didn't just grow coffee — Yemen invented coffee culture.</p>
+              <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso, marginBottom: 24 }}>Where Coffee<br /><em>Was Born</em></h2>
+              <p style={{ color: C.textSecondary, fontSize: "1.1rem", lineHeight: 1.8, marginBottom: 16, fontStyle: "italic" }}>Long before coffee became the world's most beloved beverage, it was a Yemeni secret — cultivated on terraced mountain farms, brewed in family homes, and shared as a symbol of hospitality and community.</p>
+              <p style={{ color: C.textSecondary, lineHeight: 1.8, marginBottom: 16 }}>Qahwah House traces its roots to the ancient coffee-growing highlands of Yemen, where our family has cultivated premium Arabica coffee beans for over eight generations.</p>
+              <p style={{ color: C.textSecondary, lineHeight: 1.8 }}>The word "Qahwah" (قهوة) is the original Arabic word that gave rise to "coffee" in every language on earth. Yemen didn't just grow coffee — Yemen invented coffee culture.</p>
             </div>
-            <div style={{ position:"relative" }}>
-              <img src="img33.jpg" alt="Qahwah House" style={{ width:"100%", height:420, objectFit:"cover", borderRadius:8 }} />
-              <div style={{ position:"absolute", bottom:-24, left:-24, background:C.espresso, padding:"24px 28px", borderRadius:8, maxWidth:280, border:`1px solid rgba(192,123,58,.3)` }}>
-                <p style={{ color:C.cream, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", fontStyle:"italic", lineHeight:1.6 }}>"Coffee was born in Yemen. Qahwah House brings that birthright to every cup."</p>
+            <div style={{ position: "relative" }}>
+              <img src="img33.jpg" alt="Qahwah House" style={{ width: "100%", height: 420, objectFit: "cover", borderRadius: 8 }} />
+              <div style={{ position: "absolute", bottom: -24, left: -24, background: C.espresso, padding: "24px 28px", borderRadius: 8, maxWidth: 280, border: `1px solid rgba(192,123,58,.3)` }}>
+                <p style={{ color: C.cream, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", fontStyle: "italic", lineHeight: 1.6 }}>"Coffee was born in Yemen. Qahwah House brings that birthright to every cup."</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section style={{ padding:"100px 0", background:C.cream }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ textAlign:"center", marginBottom:64 }}>
+
+      {/* Timeline */}
+      <section style={{ padding: "100px 0", background: C.cream }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
             <SectionLabel>Our Journey</SectionLabel>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>Eight Generations,<br /><em>One Mission</em></h2>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>Eight Generations,<br /><em>One Mission</em></h2>
           </div>
-          <div style={{ position:"relative" }}>
+          <div style={{ position: "relative" }}>
             <div className="timeline-line" />
-            {TIMELINE.map((item,i) => (
-              <div key={i} className={`tl-item-${item.side}`} style={{ display:"flex", justifyContent: item.side === "left" ? "flex-end" : "flex-start", paddingRight: item.side === "left" ? "calc(50% + 40px)" : 0, paddingLeft: item.side === "right" ? "calc(50% + 40px)" : 0, marginBottom:48, position:"relative" }}>
-                <div className="tl-dot" style={{ position:"absolute", left:"50%", top:8, transform:"translateX(-50%)", width:16, height:16, borderRadius:"50%", background:C.amber, border:`4px solid ${C.cream}`, boxShadow:`0 0 0 2px ${C.amber}` }} />
-                <div className="tl-content" style={{ maxWidth:420 }}>
-                  <span style={{ fontFamily:"'Jost',sans-serif", fontSize:".75rem", letterSpacing:".15em", textTransform:"uppercase", color:C.amber, display:"block", marginBottom:8 }}>{item.year}</span>
-                  <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.3rem", color:C.espresso, marginBottom:8 }}>{item.title}</h3>
-                  <p style={{ color:C.textSecondary, lineHeight:1.7 }}>{item.desc}</p>
+            {TIMELINE.map((item, i) => (
+              <div key={i} className={`tl-item-${item.side}`} style={{ display: "flex", justifyContent: item.side === "left" ? "flex-end" : "flex-start", paddingRight: item.side === "left" ? "calc(50% + 40px)" : 0, paddingLeft: item.side === "right" ? "calc(50% + 40px)" : 0, marginBottom: 48, position: "relative" }}>
+                <div className="tl-dot" style={{ position: "absolute", left: "50%", top: 8, transform: "translateX(-50%)", width: 16, height: 16, borderRadius: "50%", background: C.amber, border: `4px solid ${C.cream}`, boxShadow: `0 0 0 2px ${C.amber}` }} />
+                <div className="tl-content" style={{ maxWidth: 420 }}>
+                  <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".75rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.amber, display: "block", marginBottom: 8 }}>{item.year}</span>
+                  <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.3rem", color: C.espresso, marginBottom: 8 }}>{item.title}</h3>
+                  <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>{item.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </section>
-      <section style={{ padding:"100px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ textAlign:"center", marginBottom:64 }}>
+
+      {/* Values */}
+      <section style={{ padding: "100px 0", background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
             <SectionLabel>What We Stand For</SectionLabel>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(2rem,4vw,3rem)", color:C.espresso }}>Our Mission<br /><em>& Values</em></h2>
+            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>Our Mission<br /><em>& Values</em></h2>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 24 }}>
             {VALUES.map(v => (
-              <div key={v.num} className="value-card" style={{ padding:"40px 32px", background:"#fff", borderRadius:8, border:`1px solid rgba(192,123,58,.15)` }}>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"3rem", fontWeight:900, color:"rgba(192,123,58,.15)", lineHeight:1, marginBottom:16 }}>{v.num}</div>
-                <h3 style={{ fontFamily:"'Playfair Display',serif", color:C.espresso, marginBottom:12 }}>{v.title}</h3>
-                <p style={{ color:C.textSecondary, lineHeight:1.7 }}>{v.desc}</p>
+              <div key={v.num} className="value-card" style={{ padding: "40px 32px", background: "#fff", borderRadius: 8, border: `1px solid rgba(192,123,58,.15)` }}>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "3rem", fontWeight: 900, color: "rgba(192,123,58,.15)", lineHeight: 1, marginBottom: 16 }}>{v.num}</div>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 12 }}>{v.title}</h3>
+                <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>{v.desc}</p>
               </div>
             ))}
           </div>
@@ -640,61 +893,82 @@ function AboutPage() {
 }
 
 // ── CONTACT PAGE ───────────────────────────────────────────────────────────
+
 function ContactPage({ showToast }) {
   const [sent, setSent] = useState(false);
-  const handleSubmit = (e) => { e.preventDefault(); setSent(true); showToast("Message sent! We'll reply within 24 hours."); setTimeout(() => setSent(false), 4000); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSent(true);
+    showToast("Message sent! We'll reply within 24 hours.");
+    setTimeout(() => setSent(false), 4000);
+  };
   return (
     <>
       <PageHero label="Get in Touch" title="Contact <em>Us</em>" subtitle="We'd love to hear from you — visit us or send a message" />
-      <section style={{ padding:"100px 0", background:C.warmWhite }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:80 }}>
+      <section style={{ padding: "100px 0", background: C.warmWhite }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80 }}>
             <div>
               <SectionLabel>Send a Message</SectionLabel>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.8rem,3vw,2.5rem)", color:C.espresso, marginBottom:16 }}>Let's <em>Connect</em></h2>
-              <p style={{ color:C.textSecondary, marginBottom:36 }}>Have a question, catering inquiry, or just want to say hello? We'll get back to you within 24 hours.</p>
+              <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(1.8rem,3vw,2.5rem)", color: C.espresso, marginBottom: 16 }}>Let's <em>Connect</em></h2>
+              <p style={{ color: C.textSecondary, marginBottom: 36 }}>Have a question, catering inquiry, or just want to say hello? We'll get back to you within 24 hours.</p>
               {sent ? (
-                <div style={{ textAlign:"center", padding:"48px 0" }}>
-                  <div style={{ fontSize:"3rem", marginBottom:16 }}>✅</div>
-                  <h3 style={{ fontFamily:"'Playfair Display',serif", color:C.espresso, marginBottom:8 }}>Message Sent!</h3>
-                  <p style={{ color:C.textSecondary }}>We'll get back to you within 24 hours.</p>
+                <div style={{ textAlign: "center", padding: "48px 0" }}>
+                  <div style={{ fontSize: "3rem", marginBottom: 16 }}>✅</div>
+                  <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 8 }}>Message Sent!</h3>
+                  <p style={{ color: C.textSecondary }}>We'll get back to you within 24 hours.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:20 }}>
-                  {[{label:"Full Name",type:"text",placeholder:"Your full name"},{label:"Email Address",type:"email",placeholder:"you@example.com"}].map(f => (
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  {[{ label: "Full Name", type: "text", placeholder: "Your full name" }, { label: "Email Address", type: "email", placeholder: "you@example.com" }].map(f => (
                     <div key={f.label}>
-                      <label style={{ display:"block", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".12em", textTransform:"uppercase", color:C.textMuted, marginBottom:8 }}>{f.label}</label>
-                      <input type={f.type} placeholder={f.placeholder} required className="qh-input" style={{ width:"100%", padding:"12px 16px", border:`1px solid rgba(192,123,58,.3)`, borderRadius:6, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", background:"#fff", color:C.espresso }} />
+                      <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 8 }}>{f.label}</label>
+                      <input type={f.type} placeholder={f.placeholder} required className="qh-input" style={{ width: "100%", padding: "12px 16px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
                     </div>
                   ))}
                   <div>
-                    <label style={{ display:"block", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".12em", textTransform:"uppercase", color:C.textMuted, marginBottom:8 }}>Subject</label>
-                    <select className="qh-input" style={{ width:"100%", padding:"12px 16px", border:`1px solid rgba(192,123,58,.3)`, borderRadius:6, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", background:"#fff", color:C.espresso }}>
+                    <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 8 }}>Subject</label>
+                    <select className="qh-input" style={{ width: "100%", padding: "12px 16px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }}>
                       <option value="">Select a subject...</option>
-                      <option>General Inquiry</option><option>Catering & Events</option><option>Franchise Info</option><option>Feedback</option><option>Other</option>
+                      <option>General Inquiry</option>
+                      <option>Catering & Events</option>
+                      <option>Franchise Info</option>
+                      <option>Feedback</option>
+                      <option>Other</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display:"block", fontFamily:"'Jost',sans-serif", fontSize:".72rem", letterSpacing:".12em", textTransform:"uppercase", color:C.textMuted, marginBottom:8 }}>Message</label>
-                    <textarea rows={6} placeholder="Tell us how we can help..." required className="qh-input" style={{ width:"100%", padding:"12px 16px", border:`1px solid rgba(192,123,58,.3)`, borderRadius:6, fontFamily:"'Cormorant Garamond',serif", fontSize:"1rem", background:"#fff", color:C.espresso, resize:"vertical" }} />
+                    <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 8 }}>Message</label>
+                    <textarea rows={6} placeholder="Tell us how we can help..." required className="qh-input" style={{ width: "100%", padding: "12px 16px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso, resize: "vertical" }} />
                   </div>
                   <Btn full>Send Message</Btn>
                 </form>
               )}
             </div>
             <div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:32 }}>
-                {[{icon:"📍",title:"Visit Us",content:"162 Bedford Ave\nBrooklyn, NY 11211"},{icon:"✉️",title:"Email Us",content:"coffee@qahwahhouse.com"},{icon:"📞",title:"Call Us",content:"(313) 555-1234"},{icon:"🕐",title:"Hours",content:"Mon–Thu: 7am–10pm\nFri: 7am–11pm\nSat: 8am–11pm\nSun: 8am–9pm"}].map(card => (
-                  <div key={card.title} className="info-card" style={{ padding:"24px 20px", background:"#fff", borderRadius:8, border:`1px solid rgba(192,123,58,.2)` }}>
-                    <div style={{ fontSize:"1.5rem", marginBottom:8 }}>{card.icon}</div>
-                    <h4 style={{ fontFamily:"'Playfair Display',serif", color:C.espresso, fontSize:"1rem", marginBottom:6 }}>{card.title}</h4>
-                    <p style={{ color:C.textSecondary, fontSize:".88rem", whiteSpace:"pre-line", lineHeight:1.7 }}>{card.content}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+                {[
+                  { icon: "📍", title: "Visit Us", content: "162 Bedford Ave\nBrooklyn, NY 11211" },
+                  { icon: "✉️", title: "Email Us", content: "coffee@qahwahhouse.com" },
+                  { icon: "📞", title: "Call Us", content: "(313) 555-1234" },
+                  { icon: "🕐", title: "Hours", content: "Mon–Thu: 7am–10pm\nFri: 7am–11pm\nSat: 8am–11pm\nSun: 8am–9pm" },
+                ].map(card => (
+                  <div key={card.title} className="info-card" style={{ padding: "24px 20px", background: "#fff", borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
+                    <div style={{ fontSize: "1.5rem", marginBottom: 8 }}>{card.icon}</div>
+                    <h4 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, fontSize: "1rem", marginBottom: 6 }}>{card.title}</h4>
+                    <p style={{ color: C.textSecondary, fontSize: ".88rem", whiteSpace: "pre-line", lineHeight: 1.7 }}>{card.content}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ borderRadius:8, overflow:"hidden", border:`1px solid rgba(192,123,58,.2)` }}>
-                <iframe title="Qahwah House Location" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3025.1!2d-73.9573!3d40.7182!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25986a73a7f07%3A0x5cc0f8e5b1e4a1b0!2s162%20Bedford%20Ave%2C%20Brooklyn%2C%20NY%2011211!5e0!3m2!1sen!2sus!4v1709850000000!5m2!1sen!2sus"
-                  width="100%" height="320" style={{ border:0, display:"block" }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              <div style={{ borderRadius: 8, overflow: "hidden", border: `1px solid rgba(192,123,58,.2)` }}>
+                <iframe
+                  title="Qahwah House Location"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3025.1!2d-73.9573!3d40.7182!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25986a73a7f07%3A0x5cc0f8e5b1e4a1b0!2s162%20Bedford%20Ave%2C%20Brooklyn%2C%20NY%2011211!5e0!3m2!1sen!2sus!4v1709850000000!5m2!1sen!2sus"
+                  width="100%" height="320"
+                  style={{ border: 0, display: "block" }}
+                  allowFullScreen loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             </div>
           </div>
@@ -705,6 +979,7 @@ function ContactPage({ showToast }) {
 }
 
 // ── ROOT APP ───────────────────────────────────────────────────────────────
+
 export default function App() {
   const [page, setPage] = useState("home");
   const [cartOpen, setCartOpen] = useState(false);
@@ -713,9 +988,18 @@ export default function App() {
   const { cart, add, remove, changeQty, total, count, clear } = useCart();
   const toastTimer = useRef(null);
 
-  const showToast = (msg) => { setToast(msg); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(""), 2500); };
+  const showToast = (msg) => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 2500);
+  };
+
   const handleAdd = (item) => { add(item); };
-  const handleCheckout = () => { if (cart.length === 0) { showToast("Your cart is empty!"); return; } setCartOpen(false); setCheckoutOpen(true); };
+  const handleCheckout = () => {
+    if (cart.length === 0) { showToast("Your cart is empty!"); return; }
+    setCartOpen(false);
+    setCheckoutOpen(true);
+  };
 
   useEffect(() => {
     const el = document.createElement("style");
@@ -725,9 +1009,9 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header page={page} setPage={setPage} cartCount={count} onCartOpen={() => setCartOpen(true)} />
-      <main style={{ flex:1, paddingTop: page === "home" ? 0 : 72 }}>
+      <main style={{ flex: 1, paddingTop: page === "home" ? 0 : 72 }}>
         {page === "home" && <HomePage setPage={setPage} onAdd={handleAdd} showToast={showToast} />}
         {page === "menu" && <MenuPage onAdd={handleAdd} showToast={showToast} />}
         {page === "about" && <AboutPage />}
