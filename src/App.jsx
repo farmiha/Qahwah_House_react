@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const C = {
   espresso: "#1a0a02", darkRoast: "#2d1505", mahogany: "#4a1a08",
   amber: "#c07b3a", gold: "#d4a853", cream: "#f5efe6",
   warmWhite: "#faf6f0", textSecondary: "#5c3a1e", textMuted: "#9b7355",
 };
-
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +26,8 @@ const GLOBAL_CSS = `
     70%{transform:translate(-4%,20%)} 90%{transform:translate(-10%,5%)}
   }
   @keyframes scrollPulse { 0%,100%{opacity:.4;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(1.2)} }
-  @keyframes cartBounce { 0%{transform:scale(1)} 30%{transform:scale(1.35)} 60%{transform:.9)} 100%{transform:scale(1)} }
+  @keyframes cartBounce { 0%{transform:scale(1)} 30%{transform:scale(1.35)} 60%{transform:scale(.9)} 100%{transform:scale(1)} }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .anim-fadeup { animation: fadeUp .9s ease both; }
   .anim-fadeup-d1 { animation: fadeUp .9s ease .15s both; }
   .anim-fadeup-d2 { animation: fadeUp .9s ease .3s both; }
@@ -78,27 +78,12 @@ const GLOBAL_CSS = `
     .slider-info-bar { flex-direction: column !important; align-items: flex-start !important; }
   }
 `;
-
 const NAV_LINKS = [
   { label: "Home", page: "home" },
   { label: "Menu", page: "menu" },
   { label: "About", page: "about" },
   { label: "Contact", page: "contact" },
 ];
-
-const DRINKS = [
-  { id: 1, name: "Traditional Qahwah", desc: "Ancient Yemeni spiced coffee with ginger, cardamom & saffron.", price: 6.5, size: "12 oz", badge: "Signature", img: "img4.jpg" },
-  { id: 2, name: "Adeni Chai", desc: "Yemeni black tea with cardamom, nutmeg & evaporated milk.", price: 7.0, size: "12 oz", badge: "Signature", img: "img3.jpg" },
-  { id: 3, name: "Sana'ani Coffee", desc: "Medium roast with cardamom from Yemen's mountain capital.", price: 7.0, size: "12 oz", badge: "New", img: "img7.jpg" },
-  { id: 5, name: "Espresso", desc: "Double shot of dark roast Yemeni Arabica — bold and smooth.", price: 6.0, size: "Demitasse", badge: "Classic", img: "img8.jpg" },
-  { id: 6, name: "Latte", desc: "Smooth espresso with steamed milk and a delicate latte art finish.", price: 7.0, size: "16 oz", badge: "Café", img: "img11.jpg" },
-];
-
-const PASTRIES = [
-  { id: 7, name: "Pistachio Baklava", desc: "House-made baklava soaked in fragrant rose water syrup. Crisp and sweet.", price: 6.5, size: "2 pcs", badge: "Bestseller", img: "img9.jpg" },
-  { id: 8, name: "Honey Cake", desc: "Layered Yemeni honey cake made with local sidr honey and warm spices.", price: 5.5, size: "Slice", badge: "Chef's Pick", img: "img10.jpg" },
-];
-
 const GALLERY_SLIDES = [
   { img: "img44.jpg", caption: "Yemeni Qahwah" },
   { img: "img6.jpg", caption: "Espresso Crafted" },
@@ -107,20 +92,17 @@ const GALLERY_SLIDES = [
   { img: "img33.jpg", caption: "Heritage Ambiance" },
   { img: "img3.jpg", caption: "Chai Service" },
 ];
-
 const TESTIMONIALS = [
   { text: "The ORIGINAL spot where the current Yemeni Coffee revolution started. The espresso beans have such a unique flavor — strong yet blends beautifully. Right at the top of my list nationwide.", author: "Negin, Verified Guest" },
   { text: "From the moment I walked in, I was greeted with warmth. The cozy decor, coupled with the aroma of freshly brewed coffee, immediately put me at ease. The baristas are true artists.", author: "Verified Guest" },
   { text: "I'm now comfortable saying goodbye to Starbucks and Dunkin'. The high quality coffee is like no other. The world really owes it to Yemen for brewing the very first drinkable coffee!", author: "Verified Guest" },
 ];
-
 const VALUES = [
   { num: "01", title: "Authenticity", desc: "We never compromise on the authentic Yemeni coffee experience. Every recipe, every blend, every tradition is preserved exactly as our ancestors intended." },
   { num: "02", title: "Sustainability", desc: "Our Al Hasbani Farms have been farmed organically for over eight generations. We believe the best coffee grows in harmony with nature, not against it." },
   { num: "03", title: "Community", desc: "Qahwah — coffee — has always been a reason to gather. Our cafes are spaces for community, conversation, and connection across all cultures." },
   { num: "04", title: "Fairness", desc: "We work directly with our own family farms, ensuring fair wages, sustainable practices, and that every farmer receives the recognition they deserve." },
 ];
-
 const TIMELINE = [
   { year: "1800s", side: "left", title: "The First Harvest", desc: "Our ancestors planted the first Arabica coffee trees on the slopes of the Al Hasbani mountain range in Yemen. These ancient trees still bear fruit today." },
   { year: "1950s", side: "right", title: "Expanding the Farm", desc: "The fifth generation expanded operations, introducing sustainable farming practices and organic cultivation methods maintained to this day." },
@@ -128,15 +110,35 @@ const TIMELINE = [
   { year: "2010s", side: "right", title: "The Revolution Begins", desc: "Word spread fast. Qahwah House became the epicenter of the Yemeni coffee revolution in America, inspiring a new generation." },
   { year: "Today", side: "left", title: "30+ Locations & Growing", desc: "With over 30 locations across the United States, Qahwah House continues its mission: to share authentic Yemeni coffee culture with the world." },
 ];
-
 const ADDONS = [
   ["Extra Shot Espresso", "+$1.50"], ["Oat / Almond / Coconut Milk", "+$0.75"],
   ["Cardamom Syrup", "+$0.75"], ["Date Caramel Drizzle", "+$0.75"],
   ["Cold Foam", "+$1.00"], ["Rose Water", "+$0.50"],
 ];
-
+// ── API HELPERS ────────────────────────────────────────────────────────────
+async function fetchMenu(category) {
+  const url = category ? `${API_URL}/menu?category=${category}` : `${API_URL}/menu`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch menu");
+  return res.json();
+}
+async function postOrder(orderData) {
+  const res = await fetch(`${API_URL}/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(orderData),
+  });
+  if (!res.ok) throw new Error("Failed to place order");
+  return res.json();
+}
 // ── SHARED COMPONENTS ──────────────────────────────────────────────────────
-
+function Spinner() {
+  return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "60px 0" }}>
+      <div style={{ width: 36, height: 36, border: `3px solid rgba(192,123,58,.2)`, borderTop: `3px solid ${C.amber}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    </div>
+  );
+}
 function SectionLabel({ children }) {
   return (
     <span className="section-label" style={{ display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".75rem", fontWeight: 500, letterSpacing: ".2em", textTransform: "uppercase", color: C.amber, marginBottom: "14px" }}>
@@ -144,31 +146,28 @@ function SectionLabel({ children }) {
     </span>
   );
 }
-
-function Btn({ children, onClick, variant = "primary", style = {}, full = false }) {
-  const base = { display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".78rem", fontWeight: 500, letterSpacing: ".15em", textTransform: "uppercase", padding: "14px 36px", borderRadius: "4px", cursor: "pointer", border: "none", transition: "all .3s", width: full ? "100%" : undefined, textAlign: "center" };
+function Btn({ children, onClick, variant = "primary", style = {}, full = false, disabled = false }) {
+  const base = { display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".78rem", fontWeight: 500, letterSpacing: ".15em", textTransform: "uppercase", padding: "14px 36px", borderRadius: "4px", cursor: disabled ? "not-allowed" : "pointer", border: "none", transition: "all .3s", width: full ? "100%" : undefined, textAlign: "center", opacity: disabled ? 0.6 : 1 };
   const variants = {
     primary: { background: C.amber, color: C.warmWhite },
     outline: { background: "transparent", color: C.cream, border: `1px solid rgba(245,239,230,.5)` },
   };
-  return <button onClick={onClick} style={{ ...base, ...variants[variant], ...style }}>{children}</button>;
+  return <button onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}>{children}</button>;
 }
-
 function useCart() {
   const [cart, setCart] = useState([]);
   const add = (item) => setCart(prev => {
-    const ex = prev.find(i => i.id === item.id);
-    if (ex) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+    const ex = prev.find(i => i._id === item._id);
+    if (ex) return prev.map(i => i._id === item._id ? { ...i, qty: i.qty + 1 } : i);
     return [...prev, { ...item, qty: 1 }];
   });
-  const remove = (id) => setCart(prev => prev.filter(i => i.id !== id));
-  const changeQty = (id, delta) => setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
+  const remove = (id) => setCart(prev => prev.filter(i => i._id !== id));
+  const changeQty = (id, delta) => setCart(prev => prev.map(i => i._id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
   const clear = () => setCart([]);
   return { cart, add, remove, changeQty, total, count, clear };
 }
-
 function Toast({ msg }) {
   if (!msg) return null;
   return (
@@ -177,9 +176,7 @@ function Toast({ msg }) {
     </div>
   );
 }
-
 // ── HEADER ─────────────────────────────────────────────────────────────────
-
 function Header({ page, setPage, cartCount, onCartOpen }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -235,9 +232,7 @@ function Header({ page, setPage, cartCount, onCartOpen }) {
     </>
   );
 }
-
 // ── CART DRAWER ────────────────────────────────────────────────────────────
-
 function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout }) {
   return (
     <>
@@ -253,7 +248,7 @@ function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout 
               <div style={{ fontSize: "2.5rem", marginBottom: 16 }}>☕</div>Your cart is empty
             </div>
           ) : cart.map(item => (
-            <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: C.cream, borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
+            <div key={item._id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: C.cream, borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h4 style={{ fontFamily: "'Playfair Display',serif", fontSize: ".95rem", color: C.espresso, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</h4>
                 <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em" }}>${item.price.toFixed(2)} each</span>
@@ -261,10 +256,10 @@ function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout 
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
                 <span style={{ fontFamily: "'Playfair Display',serif", fontSize: "1.05rem", fontWeight: 700, color: C.amber }}>${(item.price * item.qty).toFixed(2)}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <button onClick={() => changeQty(item.id, -1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>−</button>
+                  <button onClick={() => changeQty(item._id, -1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>−</button>
                   <span style={{ fontFamily: "'Jost',sans-serif", fontSize: ".85rem", fontWeight: 500, minWidth: 18, textAlign: "center" }}>{item.qty}</span>
-                  <button onClick={() => changeQty(item.id, 1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>+</button>
-                  <button onClick={() => remove(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: ".9rem", marginLeft: 4 }}>🗑</button>
+                  <button onClick={() => changeQty(item._id, 1)} style={{ width: 26, height: 26, borderRadius: "50%", border: `1px solid rgba(192,123,58,.4)`, background: "none", cursor: "pointer", color: C.textSecondary }}>+</button>
+                  <button onClick={() => remove(item._id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: ".9rem", marginLeft: 4 }}>🗑</button>
                 </div>
               </div>
             </div>
@@ -281,15 +276,43 @@ function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout 
     </>
   );
 }
-
 // ── CHECKOUT MODAL ─────────────────────────────────────────────────────────
-
 function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
   const [done, setDone] = useState(false);
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const nameRef = useRef();
+  const emailRef = useRef();
+  const phoneRef = useRef();
+  const orderTypeRef = useRef();
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setDone(true);
-    setTimeout(() => { setDone(false); onSuccess(); onClose(); }, 3000);
+    setLoading(true);
+    setError("");
+    try {
+      const orderData = {
+        customer: {
+          name: nameRef.current.value,
+          email: emailRef.current.value,
+          phone: phoneRef.current.value,
+        },
+        orderType: orderTypeRef.current.value,
+        items: cart.map(i => ({
+          menuItemId: i._id,
+          name: i.name,
+          price: i.price,
+          qty: i.qty,
+        })),
+        total,
+      };
+      await postOrder(orderData);
+      setDone(true);
+      setTimeout(() => { setDone(false); onSuccess(); onClose(); }, 3000);
+    } catch (err) {
+      setError("Failed to place order. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
   if (!open) return null;
   return (
@@ -311,7 +334,7 @@ function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
               <div style={{ marginBottom: 24 }}>
                 <p style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".15em", textTransform: "uppercase", color: C.textMuted, marginBottom: 12 }}>Order Summary</p>
                 {cart.map(i => (
-                  <div key={i.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid rgba(192,123,58,.12)`, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", color: C.textSecondary }}>
+                  <div key={i._id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid rgba(192,123,58,.12)`, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", color: C.textSecondary }}>
                     <span>{i.name} ×{i.qty}</span>
                     <span style={{ color: C.amber, fontWeight: 600 }}>${(i.price * i.qty).toFixed(2)}</span>
                   </div>
@@ -320,21 +343,32 @@ function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
                   <span>Total</span><span style={{ color: C.amber }}>${total.toFixed(2)}</span>
                 </div>
               </div>
+              {error && <p style={{ color: "#c0392b", fontFamily: "'Jost',sans-serif", fontSize: ".8rem", marginBottom: 16 }}>{error}</p>}
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {[{ label: "Full Name", type: "text", placeholder: "Jane Smith" }, { label: "Email", type: "email", placeholder: "jane@example.com" }, { label: "Phone", type: "tel", placeholder: "+1 (555) 000-0000" }].map(f => (
-                  <div key={f.label}>
-                    <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>{f.label}</label>
-                    <input type={f.type} placeholder={f.placeholder} required={f.type !== "tel"} className="qh-input"
-                      style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
-                  </div>
-                ))}
+                <div>
+                  <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>Full Name</label>
+                  <input ref={nameRef} type="text" placeholder="Jane Smith" required className="qh-input"
+                    style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>Email</label>
+                  <input ref={emailRef} type="email" placeholder="jane@example.com" required className="qh-input"
+                    style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>Phone</label>
+                  <input ref={phoneRef} type="tel" placeholder="+1 (555) 000-0000" className="qh-input"
+                    style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }} />
+                </div>
                 <div>
                   <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 6 }}>Order Type</label>
-                  <select required className="qh-input" style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }}>
+                  <select ref={orderTypeRef} required className="qh-input" style={{ width: "100%", padding: "11px 14px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }}>
                     <option value="">Select...</option><option>Dine In</option><option>Takeout</option>
                   </select>
                 </div>
-                <Btn full style={{ marginTop: 8 }}>Place Order — ${total.toFixed(2)}</Btn>
+                <Btn full disabled={loading} style={{ marginTop: 8 }}>
+                  {loading ? "Placing Order..." : `Place Order — $${total.toFixed(2)}`}
+                </Btn>
               </form>
             </>
           )}
@@ -343,9 +377,7 @@ function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
     </div>
   );
 }
-
 // ── PAGE HERO ──────────────────────────────────────────────────────────────
-
 function PageHero({ label, title, subtitle }) {
   return (
     <section style={{ background: `linear-gradient(160deg,#1a0a02 0%,#2d1505 50%,#4a1a08 100%)`, minHeight: 340, display: "flex", alignItems: "flex-end", padding: "80px 40px 56px", position: "relative", overflow: "hidden" }}>
@@ -358,9 +390,7 @@ function PageHero({ label, title, subtitle }) {
     </section>
   );
 }
-
 // ── FOOTER ─────────────────────────────────────────────────────────────────
-
 function Footer({ setPage }) {
   return (
     <footer style={{ background: C.espresso }}>
@@ -403,9 +433,7 @@ function Footer({ setPage }) {
     </footer>
   );
 }
-
-// ── MENU CARD (grid view) ──────────────────────────────────────────────────
-
+// ── MENU CARD ──────────────────────────────────────────────────────────────
 function MenuCard({ item, onAdd, added }) {
   return (
     <div className="menu-card" style={{ background: C.cream, border: `1px solid rgba(192,123,58,.2)`, borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
@@ -430,180 +458,88 @@ function MenuCard({ item, onAdd, added }) {
     </div>
   );
 }
-
 // ── MENU SLIDER ────────────────────────────────────────────────────────────
-
 function MenuSlider({ items, onAdd, showToast }) {
   const [idx, setIdx] = useState(0);
   const [addedIds, setAddedIds] = useState({});
   const [fading, setFading] = useState(false);
-
   const go = (dir) => {
     setFading(true);
-    setTimeout(() => {
-      setIdx(i => (i + dir + items.length) % items.length);
-      setFading(false);
-    }, 200);
+    setTimeout(() => { setIdx(i => (i + dir + items.length) % items.length); setFading(false); }, 200);
   };
-
   const goTo = (i) => {
     if (i === idx) return;
     setFading(true);
     setTimeout(() => { setIdx(i); setFading(false); }, 200);
   };
-
   const item = items[idx];
-
   const handleAdd = (it) => {
     onAdd(it);
     showToast(`${it.name} added!`);
-    setAddedIds(v => ({ ...v, [it.id]: true }));
-    setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[it.id]; return n; }), 1400);
+    setAddedIds(v => ({ ...v, [it._id]: true }));
+    setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[it._id]; return n; }), 1400);
   };
-
+  if (!item) return null;
   return (
     <div style={{ background: C.espresso, position: "relative", overflow: "hidden" }}>
-      {/* Image area */}
       <div style={{ position: "relative", height: "clamp(380px, 55vw, 560px)", display: "flex", alignItems: "stretch" }}>
-        {/* Left dark panel */}
         <div style={{ flex: 1, background: "rgba(10,4,1,.7)", minWidth: 0 }} />
-
-        {/* Center image */}
-        <div style={{
-          width: "clamp(280px, 36vw, 480px)",
-          flexShrink: 0,
-          overflow: "hidden",
-          opacity: fading ? 0 : 1,
-          transform: fading ? "scale(1.03)" : "scale(1)",
-          transition: "opacity .2s ease, transform .2s ease",
-        }}>
-          <img
-            src={item.img}
-            alt={item.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
+        <div style={{ width: "clamp(280px, 36vw, 480px)", flexShrink: 0, overflow: "hidden", opacity: fading ? 0 : 1, transform: fading ? "scale(1.03)" : "scale(1)", transition: "opacity .2s ease, transform .2s ease" }}>
+          <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
-
-        {/* Right dark panel */}
         <div style={{ flex: 1, background: "rgba(10,4,1,.7)", minWidth: 0 }} />
-
-        {/* Left gradient */}
         <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: "32%", background: "linear-gradient(to right, rgba(26,10,2,1) 0%, rgba(26,10,2,0) 100%)", pointerEvents: "none" }} />
-        {/* Right gradient */}
         <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "32%", background: "linear-gradient(to left, rgba(26,10,2,1) 0%, rgba(26,10,2,0) 100%)", pointerEvents: "none" }} />
-        {/* Bottom gradient */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(26,10,2,.9) 0%, transparent 100%)", pointerEvents: "none" }} />
-
-        {/* Prev arrow */}
-        <button
-          className="slider-arrow slider-arrows-left"
-          onClick={() => go(-1)}
-          style={{
-            position: "absolute", left: 32, top: "50%", transform: "translateY(-50%)",
-            width: 52, height: 52, borderRadius: "50%",
-            background: "rgba(26,10,2,.4)",
-            border: `1px solid rgba(245,239,230,.4)`,
-            color: C.cream, fontSize: "1.4rem",
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 10, transition: "all .2s", lineHeight: 1,
-          }}
-        >‹</button>
-
-        {/* Next arrow */}
-        <button
-          className="slider-arrow slider-arrows-right"
-          onClick={() => go(1)}
-          style={{
-            position: "absolute", right: 32, top: "50%", transform: "translateY(-50%)",
-            width: 52, height: 52, borderRadius: "50%",
-            background: "rgba(26,10,2,.4)",
-            border: `1px solid rgba(245,239,230,.4)`,
-            color: C.cream, fontSize: "1.4rem",
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 10, transition: "all .2s", lineHeight: 1,
-          }}
-        >›</button>
+        <button className="slider-arrow slider-arrows-left" onClick={() => go(-1)} style={{ position: "absolute", left: 32, top: "50%", transform: "translateY(-50%)", width: 52, height: 52, borderRadius: "50%", background: "rgba(26,10,2,.4)", border: `1px solid rgba(245,239,230,.4)`, color: C.cream, fontSize: "1.4rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, transition: "all .2s", lineHeight: 1 }}>‹</button>
+        <button className="slider-arrow slider-arrows-right" onClick={() => go(1)} style={{ position: "absolute", right: 32, top: "50%", transform: "translateY(-50%)", width: 52, height: 52, borderRadius: "50%", background: "rgba(26,10,2,.4)", border: `1px solid rgba(245,239,230,.4)`, color: C.cream, fontSize: "1.4rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, transition: "all .2s", lineHeight: 1 }}>›</button>
       </div>
-
-      {/* Info bar */}
-      <div
-        className="slider-info-bar"
-        style={{
-          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
-          padding: "24px 72px 20px",
-          opacity: fading ? 0 : 1,
-          transition: "opacity .2s ease",
-          gap: 24, flexWrap: "wrap",
-        }}
-      >
-        {/* Left: badge + name + desc */}
+      <div className="slider-info-bar" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "24px 72px 20px", opacity: fading ? 0 : 1, transition: "opacity .2s ease", gap: 24, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <span style={{
-            display: "inline-block", background: C.amber, color: "#fff",
-            fontFamily: "'Jost',sans-serif", fontSize: ".58rem", fontWeight: 600,
-            letterSpacing: ".16em", textTransform: "uppercase",
-            padding: "3px 14px", borderRadius: 20, marginBottom: 12,
-          }}>{item.badge}</span>
-          <h2 style={{
-            fontFamily: "'Playfair Display',serif", fontWeight: 900, color: C.cream,
-            fontSize: "clamp(1.8rem,3.5vw,2.8rem)", lineHeight: 1.1, marginBottom: 10,
-          }}>{item.name}</h2>
-          <p style={{ color: "rgba(245,239,230,.6)", fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", maxWidth: 400, lineHeight: 1.6 }}>
-            {item.desc}
-          </p>
+          <span style={{ display: "inline-block", background: C.amber, color: "#fff", fontFamily: "'Jost',sans-serif", fontSize: ".58rem", fontWeight: 600, letterSpacing: ".16em", textTransform: "uppercase", padding: "3px 14px", borderRadius: 20, marginBottom: 12 }}>{item.badge}</span>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, color: C.cream, fontSize: "clamp(1.8rem,3.5vw,2.8rem)", lineHeight: 1.1, marginBottom: 10 }}>{item.name}</h2>
+          <p style={{ color: "rgba(245,239,230,.6)", fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", maxWidth: 400, lineHeight: 1.6 }}>{item.desc}</p>
         </div>
-
-        {/* Right: price + size + button */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,2.8rem)", fontWeight: 700, color: C.amber, lineHeight: 1 }}>
-            ${item.price.toFixed(2)}
-          </div>
-          <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".65rem", letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(245,239,230,.4)", marginBottom: 4 }}>
-            {item.size}
-          </div>
-          <button
-            onClick={() => handleAdd(item)}
-            style={{
-              background: addedIds[item.id] ? "#2d6a4f" : C.amber,
-              color: "#fff", border: "none", borderRadius: 6,
-              padding: "13px 32px",
-              fontFamily: "'Jost',sans-serif", fontSize: ".72rem", fontWeight: 500,
-              letterSpacing: ".14em", textTransform: "uppercase",
-              cursor: "pointer", transition: "background .2s", whiteSpace: "nowrap",
-            }}
-          >
-            {addedIds[item.id] ? "✓ Added" : "+ Add to Cart"}
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,2.8rem)", fontWeight: 700, color: C.amber, lineHeight: 1 }}>${item.price.toFixed(2)}</div>
+          <div style={{ fontFamily: "'Jost',sans-serif", fontSize: ".65rem", letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(245,239,230,.4)", marginBottom: 4 }}>{item.size}</div>
+          <button onClick={() => handleAdd(item)} style={{ background: addedIds[item._id] ? "#2d6a4f" : C.amber, color: "#fff", border: "none", borderRadius: 6, padding: "13px 32px", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", fontWeight: 500, letterSpacing: ".14em", textTransform: "uppercase", cursor: "pointer", transition: "background .2s", whiteSpace: "nowrap" }}>
+            {addedIds[item._id] ? "✓ Added" : "+ Add to Cart"}
           </button>
         </div>
       </div>
-
-      {/* Dots */}
       <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "10px 0 28px" }}>
         {items.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            style={{
-              width: i === idx ? 28 : 8, height: 8, borderRadius: 4,
-              background: i === idx ? C.amber : "rgba(192,123,58,.3)",
-              border: "none", cursor: "pointer", transition: "all .3s", padding: 0,
-            }}
-          />
+          <button key={i} onClick={() => goTo(i)} style={{ width: i === idx ? 28 : 8, height: 8, borderRadius: 4, background: i === idx ? C.amber : "rgba(192,123,58,.3)", border: "none", cursor: "pointer", transition: "all .3s", padding: 0 }} />
         ))}
       </div>
     </div>
   );
 }
-
+function CardGrid({ items, onAdd, showToast }) {
+  const [addedIds, setAddedIds] = useState({});
+  const handleAdd = (item) => {
+    onAdd(item);
+    showToast(`${item.name} added!`);
+    setAddedIds(v => ({ ...v, [item._id]: true }));
+    setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[item._id]; return n; }), 1400);
+  };
+  return (
+    <div className="menu-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+      {items.map(item => (
+        <MenuCard key={item._id} item={item} added={!!addedIds[item._id]} onAdd={() => handleAdd(item)} />
+      ))}
+    </div>
+  );
+}
 // ── HOME PAGE ──────────────────────────────────────────────────────────────
-
-function HomePage({ setPage, onAdd, showToast }) {
+function HomePage({ setPage, onAdd, showToast, drinks }) {
   const [galleryIdx, setGalleryIdx] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setGalleryIdx(i => (i + 1) % GALLERY_SLIDES.length), 4000);
     return () => clearInterval(id);
   }, []);
-
+  const previewItems = drinks.slice(0, 3);
   return (
     <>
       {/* Hero */}
@@ -626,7 +562,6 @@ function HomePage({ setPage, onAdd, showToast }) {
           Scroll<div className="scroll-line" />
         </div>
       </section>
-
       {/* Features */}
       <section style={{ padding: "100px 0", background: C.warmWhite }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
@@ -652,7 +587,6 @@ function HomePage({ setPage, onAdd, showToast }) {
           </div>
         </div>
       </section>
-
       {/* Stats */}
       <div style={{ background: C.espresso, display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
         {[["8+", "Generations"], ["100%", "Organic Beans"], ["30+", "Locations"], ["100+", "Products"]].map(([n, l], i) => (
@@ -662,7 +596,6 @@ function HomePage({ setPage, onAdd, showToast }) {
           </div>
         ))}
       </div>
-
       {/* Gallery */}
       <section style={{ padding: "100px 0", background: C.warmWhite, overflow: "hidden" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center", marginBottom: 48 }}>
@@ -687,7 +620,6 @@ function HomePage({ setPage, onAdd, showToast }) {
           </div>
         </div>
       </section>
-
       {/* Menu Preview */}
       <section style={{ padding: "100px 0", background: C.cream }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
@@ -696,8 +628,8 @@ function HomePage({ setPage, onAdd, showToast }) {
             <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(2rem,4vw,3rem)", color: C.espresso }}>Signature<br /><em>Creations</em></h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 24 }}>
-            {[DRINKS[0], DRINKS[1], DRINKS[2]].map((item, i) => (
-              <div key={item.id} className="menu-preview-card" style={{ background: "#fff", borderRadius: 8, padding: "40px 32px", border: i === 1 ? `2px solid ${C.amber}` : `1px solid rgba(192,123,58,.2)`, position: "relative" }}>
+            {previewItems.map((item, i) => (
+              <div key={item._id} className="menu-preview-card" style={{ background: "#fff", borderRadius: 8, padding: "40px 32px", border: i === 1 ? `2px solid ${C.amber}` : `1px solid rgba(192,123,58,.2)`, position: "relative" }}>
                 {i === 1 && <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: C.amber, color: "#fff", fontFamily: "'Jost',sans-serif", fontSize: ".6rem", letterSpacing: ".12em", textTransform: "uppercase", padding: "4px 16px", borderRadius: 20 }}>Most Popular</div>}
                 <div style={{ fontSize: "2.5rem", marginBottom: 16 }}>☕</div>
                 <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 8 }}>{item.name}</h3>
@@ -714,7 +646,6 @@ function HomePage({ setPage, onAdd, showToast }) {
           </div>
         </div>
       </section>
-
       {/* Testimonials */}
       <section style={{ padding: "100px 0", background: C.warmWhite }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
@@ -736,71 +667,47 @@ function HomePage({ setPage, onAdd, showToast }) {
     </>
   );
 }
-function CardGrid({ items, onAdd, showToast }) {
-  const [addedIds, setAddedIds] = useState({});
-
-  const handleAdd = (item) => {
-    onAdd(item);
-    showToast(`${item.name} added!`);
-    setAddedIds(v => ({ ...v, [item.id]: true }));
-    setTimeout(() => setAddedIds(v => { const n = { ...v }; delete n[item.id]; return n; }), 1400);
-  };
-
-  return (
-    <div className="menu-card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-      {items.map(item => (
-        <MenuCard
-          key={item.id}
-          item={item}
-          added={!!addedIds[item.id]}
-          onAdd={() => handleAdd(item)}
-        />
-      ))}
-    </div>
-  );
-}
 // ── MENU PAGE ──────────────────────────────────────────────────────────────
-
 function MenuPage({ onAdd, showToast }) {
   const [activeTab, setActiveTab] = useState("drinks");
-  const items = activeTab === "drinks" ? DRINKS : PASTRIES;
-
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    fetchMenu(activeTab)
+      .then(setItems)
+      .catch(() => setError("Failed to load menu. Please try again."))
+      .finally(() => setLoading(false));
+  }, [activeTab]);
   return (
     <>
       <PageHero label="Our Menu" title="Taste <em>Tradition</em>" subtitle="From spiced ancient brews to artisan pastries, every item is crafted with heritage." />
       <section style={{ background: C.warmWhite }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          {/* Tabs */}
           <div style={{ display: "flex", borderBottom: `1px solid rgba(192,123,58,.2)`, overflowX: "auto", paddingTop: 40 }}>
             {[["drinks", "Drinks & Coffee"], ["pastries", "Pastries & Sweets"]].map(([key, label]) => (
               <button key={key} onClick={() => setActiveTab(key)}
-                style={{
-                  fontFamily: "'Jost',sans-serif", fontSize: ".8rem", fontWeight: 500,
-                  letterSpacing: ".1em", textTransform: "uppercase", padding: "16px 32px",
-                  border: "none", background: "transparent", cursor: "pointer",
-                  transition: "all .3s", whiteSpace: "nowrap",
-                  borderBottom: `2px solid ${activeTab === key ? C.amber : "transparent"}`,
-                  marginBottom: -1,
-                  color: activeTab === key ? C.amber : C.textMuted,
-                }}>
+                style={{ fontFamily: "'Jost',sans-serif", fontSize: ".8rem", fontWeight: 500, letterSpacing: ".1em", textTransform: "uppercase", padding: "16px 32px", border: "none", background: "transparent", cursor: "pointer", transition: "all .3s", whiteSpace: "nowrap", borderBottom: `2px solid ${activeTab === key ? C.amber : "transparent"}`, marginBottom: -1, color: activeTab === key ? C.amber : C.textMuted }}>
                 {label}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Slider */}
-        <MenuSlider items={items} onAdd={onAdd} showToast={showToast} />
-
-        {/* Cards Grid */}
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 0" }}>
-          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".2em", textTransform: "uppercase", color: C.textMuted, marginBottom: 24 }}>
-            All {activeTab === "drinks" ? "Drinks" : "Pastries"}
-          </p>
-          <CardGrid items={items} onAdd={onAdd} showToast={showToast} />
-        </div>
-
-        {/* Add-ons */}
+        {loading ? <Spinner /> : error ? (
+          <p style={{ textAlign: "center", padding: "40px 0", color: "#c0392b", fontFamily: "'Jost',sans-serif" }}>{error}</p>
+        ) : (
+          <>
+            <MenuSlider items={items} onAdd={onAdd} showToast={showToast} />
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 0" }}>
+              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: ".7rem", letterSpacing: ".2em", textTransform: "uppercase", color: C.textMuted, marginBottom: 24 }}>
+                All {activeTab === "drinks" ? "Drinks" : "Pastries"}
+              </p>
+              <CardGrid items={items} onAdd={onAdd} showToast={showToast} />
+            </div>
+          </>
+        )}
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 80px" }}>
           <div style={{ padding: 40, background: C.cream, borderRadius: 8, border: `1px solid rgba(192,123,58,.2)` }}>
             <h3 style={{ fontFamily: "'Playfair Display',serif", color: C.espresso, marginBottom: 24, fontSize: "1.4rem" }}>Add-Ons & Customizations</h3>
@@ -818,15 +725,11 @@ function MenuPage({ onAdd, showToast }) {
     </>
   );
 }
-
 // ── ABOUT PAGE ─────────────────────────────────────────────────────────────
-
 function AboutPage() {
   return (
     <>
       <PageHero label="Est. 1800s" title="Our <em>Story</em>" subtitle="Eight generations of coffee mastery, from Yemen to the world" />
-
-      {/* Intro */}
       <section style={{ padding: "100px 0", background: C.warmWhite }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
@@ -846,8 +749,6 @@ function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* Timeline */}
       <section style={{ padding: "100px 0", background: C.cream }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
@@ -869,8 +770,6 @@ function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* Values */}
       <section style={{ padding: "100px 0", background: C.warmWhite }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
@@ -891,9 +790,7 @@ function AboutPage() {
     </>
   );
 }
-
 // ── CONTACT PAGE ───────────────────────────────────────────────────────────
-
 function ContactPage({ showToast }) {
   const [sent, setSent] = useState(false);
   const handleSubmit = (e) => {
@@ -930,11 +827,8 @@ function ContactPage({ showToast }) {
                     <label style={{ display: "block", fontFamily: "'Jost',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", textTransform: "uppercase", color: C.textMuted, marginBottom: 8 }}>Subject</label>
                     <select className="qh-input" style={{ width: "100%", padding: "12px 16px", border: `1px solid rgba(192,123,58,.3)`, borderRadius: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: "1rem", background: "#fff", color: C.espresso }}>
                       <option value="">Select a subject...</option>
-                      <option>General Inquiry</option>
-                      <option>Catering & Events</option>
-                      <option>Franchise Info</option>
-                      <option>Feedback</option>
-                      <option>Other</option>
+                      <option>General Inquiry</option><option>Catering & Events</option>
+                      <option>Franchise Info</option><option>Feedback</option><option>Other</option>
                     </select>
                   </div>
                   <div>
@@ -961,14 +855,8 @@ function ContactPage({ showToast }) {
                 ))}
               </div>
               <div style={{ borderRadius: 8, overflow: "hidden", border: `1px solid rgba(192,123,58,.2)` }}>
-                <iframe
-                  title="Qahwah House Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3025.1!2d-73.9573!3d40.7182!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25986a73a7f07%3A0x5cc0f8e5b1e4a1b0!2s162%20Bedford%20Ave%2C%20Brooklyn%2C%20NY%2011211!5e0!3m2!1sen!2sus!4v1709850000000!5m2!1sen!2sus"
-                  width="100%" height="320"
-                  style={{ border: 0, display: "block" }}
-                  allowFullScreen loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+                <iframe title="Qahwah House Location" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3025.1!2d-73.9573!3d40.7182!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25986a73a7f07%3A0x5cc0f8e5b1e4a1b0!2s162%20Bedford%20Ave%2C%20Brooklyn%2C%20NY%2011211!5e0!3m2!1sen!2sus!4v1709850000000!5m2!1sen!2sus"
+                  width="100%" height="320" style={{ border: 0, display: "block" }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
               </div>
             </div>
           </div>
@@ -977,42 +865,41 @@ function ContactPage({ showToast }) {
     </>
   );
 }
-
 // ── ROOT APP ───────────────────────────────────────────────────────────────
-
 export default function App() {
   const [page, setPage] = useState("home");
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [drinks, setDrinks] = useState([]);
   const { cart, add, remove, changeQty, total, count, clear } = useCart();
   const toastTimer = useRef(null);
-
+  // Fetch drinks on mount for home page preview
+  useEffect(() => {
+    fetchMenu("drinks").then(setDrinks).catch(() => {});
+  }, []);
   const showToast = (msg) => {
     setToast(msg);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 2500);
   };
-
   const handleAdd = (item) => { add(item); };
   const handleCheckout = () => {
     if (cart.length === 0) { showToast("Your cart is empty!"); return; }
     setCartOpen(false);
     setCheckoutOpen(true);
   };
-
   useEffect(() => {
     const el = document.createElement("style");
     el.textContent = GLOBAL_CSS;
     document.head.appendChild(el);
     return () => document.head.removeChild(el);
   }, []);
-
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header page={page} setPage={setPage} cartCount={count} onCartOpen={() => setCartOpen(true)} />
       <main style={{ flex: 1, paddingTop: page === "home" ? 0 : 72 }}>
-        {page === "home" && <HomePage setPage={setPage} onAdd={handleAdd} showToast={showToast} />}
+        {page === "home" && <HomePage setPage={setPage} onAdd={handleAdd} showToast={showToast} drinks={drinks} />}
         {page === "menu" && <MenuPage onAdd={handleAdd} showToast={showToast} />}
         {page === "about" && <AboutPage />}
         {page === "contact" && <ContactPage showToast={showToast} />}
