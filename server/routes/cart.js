@@ -17,18 +17,25 @@ router.get("/:sessionId", async (req, res) => {
 router.post("/:sessionId/add", async (req, res) => {
   try {
     const { menuItemId, name, price, qty } = req.body;
+
+    // Convert to string so comparison always works
+    const itemId = menuItemId?.toString();
+
     let cart = await Cart.findOne({ sessionId: req.params.sessionId });
     if (!cart) cart = new Cart({ sessionId: req.params.sessionId, items: [] });
 
     const existing = cart.items.find(
-      (i) => i.menuItemId?.toString() === menuItemId?.toString()
+      (i) => i.menuItemId?.toString() === itemId
     );
+
     if (existing) {
       existing.qty += qty;
     } else {
-      cart.items.push({ menuItemId, name, price, qty });
+      cart.items.push({ menuItemId: itemId, name, price, qty });
     }
 
+    // markModified tells Mongoose the nested array changed
+    cart.markModified("items");
     await cart.save();
     res.json(cart);
   } catch (err) {
@@ -39,17 +46,19 @@ router.post("/:sessionId/add", async (req, res) => {
 // POST /api/cart/:sessionId/decrement — decrease qty by 1 (min 1)
 router.post("/:sessionId/decrement", async (req, res) => {
   try {
-    const { menuItemId } = req.body;
+    const itemId = req.body.menuItemId?.toString();
     const cart = await Cart.findOne({ sessionId: req.params.sessionId });
     if (!cart) return res.status(404).json({ error: "Cart not found" });
 
     const existing = cart.items.find(
-      (i) => i.menuItemId?.toString() === menuItemId?.toString()
+      (i) => i.menuItemId?.toString() === itemId
     );
+
     if (existing && existing.qty > 1) {
       existing.qty -= 1;
     }
 
+    cart.markModified("items");
     await cart.save();
     res.json(cart);
   } catch (err) {
@@ -60,14 +69,15 @@ router.post("/:sessionId/decrement", async (req, res) => {
 // DELETE /api/cart/:sessionId/remove — remove a single item entirely
 router.delete("/:sessionId/remove", async (req, res) => {
   try {
-    const { menuItemId } = req.body;
+    const itemId = req.body.menuItemId?.toString();
     const cart = await Cart.findOne({ sessionId: req.params.sessionId });
     if (!cart) return res.status(404).json({ error: "Cart not found" });
 
     cart.items = cart.items.filter(
-      (i) => i.menuItemId?.toString() !== menuItemId?.toString()
+      (i) => i.menuItemId?.toString() !== itemId
     );
 
+    cart.markModified("items");
     await cart.save();
     res.json(cart);
   } catch (err) {
@@ -80,7 +90,7 @@ router.delete("/:sessionId/clear", async (req, res) => {
   try {
     await Cart.findOneAndUpdate(
       { sessionId: req.params.sessionId },
-      { items: [] },
+      { $set: { items: [] } },
       { upsert: true, new: true }
     );
     res.json({ message: "Cart cleared" });
