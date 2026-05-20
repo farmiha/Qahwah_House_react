@@ -4,16 +4,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import menuRoutes from "./routes/menu.js";
 import orderRoutes from "./routes/orders.js";
+import cartRoutes from "./routes/cart.js";
 
 dotenv.config();
 
 const app = express();
+
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// Routes
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => res.json({ message: "Qahwah House API running ☕" }));
 
