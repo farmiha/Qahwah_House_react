@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+ import { useState, useEffect, useRef } from "react";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const C = {
   espresso: "#1a0a02", darkRoast: "#2d1505", mahogany: "#4a1a08",
   amber: "#c07b3a", gold: "#d4a853", cream: "#f5efe6",
   warmWhite: "#faf6f0", textSecondary: "#5c3a1e", textMuted: "#9b7355",
 };
+
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -78,12 +81,14 @@ const GLOBAL_CSS = `
     .slider-info-bar { flex-direction: column !important; align-items: flex-start !important; }
   }
 `;
+
 const NAV_LINKS = [
   { label: "Home", page: "home" },
   { label: "Menu", page: "menu" },
   { label: "About", page: "about" },
   { label: "Contact", page: "contact" },
 ];
+
 const GALLERY_SLIDES = [
   { img: "img44.jpg", caption: "Yemeni Qahwah" },
   { img: "img6.jpg", caption: "Espresso Crafted" },
@@ -92,17 +97,20 @@ const GALLERY_SLIDES = [
   { img: "img33.jpg", caption: "Heritage Ambiance" },
   { img: "img3.jpg", caption: "Chai Service" },
 ];
+
 const TESTIMONIALS = [
   { text: "The ORIGINAL spot where the current Yemeni Coffee revolution started. The espresso beans have such a unique flavor — strong yet blends beautifully. Right at the top of my list nationwide.", author: "Negin, Verified Guest" },
   { text: "From the moment I walked in, I was greeted with warmth. The cozy decor, coupled with the aroma of freshly brewed coffee, immediately put me at ease. The baristas are true artists.", author: "Verified Guest" },
   { text: "I'm now comfortable saying goodbye to Starbucks and Dunkin'. The high quality coffee is like no other. The world really owes it to Yemen for brewing the very first drinkable coffee!", author: "Verified Guest" },
 ];
+
 const VALUES = [
   { num: "01", title: "Authenticity", desc: "We never compromise on the authentic Yemeni coffee experience. Every recipe, every blend, every tradition is preserved exactly as our ancestors intended." },
   { num: "02", title: "Sustainability", desc: "Our Al Hasbani Farms have been farmed organically for over eight generations. We believe the best coffee grows in harmony with nature, not against it." },
   { num: "03", title: "Community", desc: "Qahwah — coffee — has always been a reason to gather. Our cafes are spaces for community, conversation, and connection across all cultures." },
   { num: "04", title: "Fairness", desc: "We work directly with our own family farms, ensuring fair wages, sustainable practices, and that every farmer receives the recognition they deserve." },
 ];
+
 const TIMELINE = [
   { year: "1800s", side: "left", title: "The First Harvest", desc: "Our ancestors planted the first Arabica coffee trees on the slopes of the Al Hasbani mountain range in Yemen. These ancient trees still bear fruit today." },
   { year: "1950s", side: "right", title: "Expanding the Farm", desc: "The fifth generation expanded operations, introducing sustainable farming practices and organic cultivation methods maintained to this day." },
@@ -110,17 +118,20 @@ const TIMELINE = [
   { year: "2010s", side: "right", title: "The Revolution Begins", desc: "Word spread fast. Qahwah House became the epicenter of the Yemeni coffee revolution in America, inspiring a new generation." },
   { year: "Today", side: "left", title: "30+ Locations & Growing", desc: "With over 30 locations across the United States, Qahwah House continues its mission: to share authentic Yemeni coffee culture with the world." },
 ];
+
 const ADDONS = [
   ["Extra Shot Espresso", "+$1.50"], ["Oat / Almond / Coconut Milk", "+$0.75"],
   ["Cardamom Syrup", "+$0.75"], ["Date Caramel Drizzle", "+$0.75"],
   ["Cold Foam", "+$1.00"], ["Rose Water", "+$0.50"],
 ];
+
 async function fetchMenu(category) {
   const url = category ? `${API_URL}/menu?category=${category}` : `${API_URL}/menu`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch menu");
   return res.json();
 }
+
 async function postOrder(orderData) {
   const res = await fetch(`${API_URL}/orders`, {
     method: "POST",
@@ -130,6 +141,7 @@ async function postOrder(orderData) {
   if (!res.ok) throw new Error("Failed to place order");
   return res.json();
 }
+
 function Spinner() {
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "60px 0" }}>
@@ -137,6 +149,7 @@ function Spinner() {
     </div>
   );
 }
+
 function SectionLabel({ children }) {
   return (
     <span className="section-label" style={{ display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".75rem", fontWeight: 500, letterSpacing: ".2em", textTransform: "uppercase", color: "#c07b3a", marginBottom: "14px" }}>
@@ -144,6 +157,7 @@ function SectionLabel({ children }) {
     </span>
   );
 }
+
 function Btn({ children, onClick, variant = "primary", style = {}, full = false, disabled = false }) {
   const base = { display: "inline-block", fontFamily: "'Jost',sans-serif", fontSize: ".78rem", fontWeight: 500, letterSpacing: ".15em", textTransform: "uppercase", padding: "14px 36px", borderRadius: "4px", cursor: disabled ? "not-allowed" : "pointer", border: "none", transition: "all .3s", width: full ? "100%" : undefined, textAlign: "center", opacity: disabled ? 0.6 : 1 };
   const variants = {
@@ -152,31 +166,101 @@ function Btn({ children, onClick, variant = "primary", style = {}, full = false,
   };
   return <button onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}>{children}</button>;
 }
+
 function useCart() {
   const [cart, setCart] = useState([]);
   const sessionId = useRef("session-" + Math.random().toString(36).slice(2, 10)).current;
-  const add = (item) => setCart(prev => {
-    const ex = prev.find(i => i._id === item._id);
-    const next = ex
-      ? prev.map(i => i._id === item._id ? { ...i, qty: i.qty + 1 } : i)
-      : [...prev, { ...item, qty: 1 }];
+
+  // Load cart from MongoDB on mount
+  useEffect(() => {
+    fetch(`${API_URL}/cart/${sessionId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.items && data.items.length > 0) {
+          setCart(
+            data.items.map(i => ({
+              _id: i.menuItemId,
+              name: i.name,
+              price: i.price,
+              qty: i.qty,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, [sessionId]);
+
+  const add = (item) => {
+    // Update local state immediately
+    setCart(prev => {
+      const ex = prev.find(i => i._id === item._id);
+      return ex
+        ? prev.map(i => i._id === item._id ? { ...i, qty: i.qty + 1 } : i)
+        : [...prev, { ...item, qty: 1 }];
+    });
+
+    // Always sync +1 to MongoDB (backend accumulates correctly)
     fetch(`${API_URL}/cart/${sessionId}/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ menuItemId: item._id, name: item.name, price: item.price, qty: 1 }),
+      body: JSON.stringify({
+        menuItemId: item._id,
+        name: item.name,
+        price: item.price,
+        qty: 1,
+      }),
     }).catch(() => {});
-    return next;
-  });
-  const remove = (id) => setCart(prev => prev.filter(i => i._id !== id));
-  const changeQty = (id, delta) => setCart(prev => prev.map(i => i._id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
+  };
+
+  const remove = (id) => {
+    setCart(prev => prev.filter(i => i._id !== id));
+    // Sync removal to MongoDB via clear-and-rebuild approach
+    // We'll use the update endpoint to set qty to 0
+    fetch(`${API_URL}/cart/${sessionId}/remove`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ menuItemId: id }),
+    }).catch(() => {});
+  };
+
+  const changeQty = (id, delta) => {
+    setCart(prev => prev.map(i => i._id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
+
+    // Sync quantity change to MongoDB
+    if (delta > 0) {
+      const item = cart.find(i => i._id === id);
+      if (item) {
+        fetch(`${API_URL}/cart/${sessionId}/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            menuItemId: id,
+            name: item.name,
+            price: item.price,
+            qty: 1,
+          }),
+        }).catch(() => {});
+      }
+    } else {
+      fetch(`${API_URL}/cart/${sessionId}/decrement`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ menuItemId: id }),
+      }).catch(() => {});
+    }
+  };
+
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
+
   const clear = () => {
     setCart([]);
     fetch(`${API_URL}/cart/${sessionId}/clear`, { method: "DELETE" }).catch(() => {});
   };
+
   return { cart, add, remove, changeQty, total, count, clear };
 }
+
 function Toast({ msg }) {
   if (!msg) return null;
   return (
@@ -185,6 +269,7 @@ function Toast({ msg }) {
     </div>
   );
 }
+
 function Header({ page, setPage, cartCount, onCartOpen }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -240,6 +325,7 @@ function Header({ page, setPage, cartCount, onCartOpen }) {
     </>
   );
 }
+
 function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout }) {
   return (
     <>
@@ -283,6 +369,7 @@ function CartDrawer({ open, onClose, cart, changeQty, remove, total, onCheckout 
     </>
   );
 }
+
 function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -371,6 +458,7 @@ function CheckoutModal({ open, onClose, cart, total, onSuccess }) {
     </div>
   );
 }
+
 function PageHero({ label, title, subtitle }) {
   return (
     <section style={{ background: "linear-gradient(160deg,#1a0a02 0%,#2d1505 50%,#4a1a08 100%)", minHeight: 340, display: "flex", alignItems: "flex-end", padding: "80px 40px 56px", position: "relative", overflow: "hidden" }}>
@@ -383,6 +471,7 @@ function PageHero({ label, title, subtitle }) {
     </section>
   );
 }
+
 function Footer({ setPage }) {
   return (
     <footer style={{ background: "#1a0a02" }}>
@@ -425,6 +514,7 @@ function Footer({ setPage }) {
     </footer>
   );
 }
+
 function MenuCard({ item, onAdd, added }) {
   return (
     <div className="menu-card" style={{ background: "#f5efe6", border: "1px solid rgba(192,123,58,.2)", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
@@ -449,6 +539,7 @@ function MenuCard({ item, onAdd, added }) {
     </div>
   );
 }
+
 function MenuSlider({ items, onAdd, showToast }) {
   const [idx, setIdx] = useState(0);
   const [addedIds, setAddedIds] = useState({});
@@ -506,6 +597,7 @@ function MenuSlider({ items, onAdd, showToast }) {
     </div>
   );
 }
+
 function CardGrid({ items, onAdd, showToast }) {
   const [addedIds, setAddedIds] = useState({});
   const handleAdd = (item) => {
@@ -522,6 +614,7 @@ function CardGrid({ items, onAdd, showToast }) {
     </div>
   );
 }
+
 function HomePage({ setPage, onAdd, showToast, drinks }) {
   const [galleryIdx, setGalleryIdx] = useState(0);
   useEffect(() => {
@@ -650,6 +743,7 @@ function HomePage({ setPage, onAdd, showToast, drinks }) {
     </>
   );
 }
+
 function MenuPage({ onAdd, showToast }) {
   const [activeTab, setActiveTab] = useState("drinks");
   const [items, setItems] = useState([]);
@@ -707,6 +801,7 @@ function MenuPage({ onAdd, showToast }) {
     </>
   );
 }
+
 function AboutPage() {
   return (
     <>
@@ -771,6 +866,7 @@ function AboutPage() {
     </>
   );
 }
+
 function ContactPage({ showToast }) {
   const [sent, setSent] = useState(false);
   const handleSubmit = (e) => {
@@ -845,6 +941,7 @@ function ContactPage({ showToast }) {
     </>
   );
 }
+
 export default function App() {
   const [page, setPage] = useState("home");
   const [cartOpen, setCartOpen] = useState(false);
@@ -853,26 +950,32 @@ export default function App() {
   const [drinks, setDrinks] = useState([]);
   const { cart, add, remove, changeQty, total, count, clear } = useCart();
   const toastTimer = useRef(null);
+
   useEffect(() => {
     fetchMenu("drinks").then(setDrinks).catch(() => {});
   }, []);
+
   const showToast = (msg) => {
     setToast(msg);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 2500);
   };
+
   const handleAdd = (item) => { add(item); };
+
   const handleCheckout = () => {
     if (cart.length === 0) { showToast("Your cart is empty!"); return; }
     setCartOpen(false);
     setCheckoutOpen(true);
   };
+
   useEffect(() => {
     const el = document.createElement("style");
     el.textContent = GLOBAL_CSS;
     document.head.appendChild(el);
     return () => document.head.removeChild(el);
   }, []);
+
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header page={page} setPage={setPage} cartCount={count} onCartOpen={() => setCartOpen(true)} />
